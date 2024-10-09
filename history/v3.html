@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of 15 Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            text-align: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            background-color: #3498db;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tile:hover:not(:disabled) {
+            background-color: #2980b9;
+        }
+        .tile:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .empty {
+            background-color: #f0f0f0;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Game of 15 Simulator</h1>
+        <div class="board" id="board"></div>
+        <button onclick="newGame()">New Game</button>
+        <button onclick="solveStep()" id="solveButton">Solve Step</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let board = [];
+        const size = 4;
+        let gameWon = false;
+
+        function createBoard() {
+            board = Array.from({length: size * size}, (_, i) => i);
+            shuffleBoard();
+            while (!isSolvable() || isGameWon()) {
+                shuffleBoard();
+            }
+            gameWon = false;
+            document.getElementById('message').textContent = '';
+            document.getElementById('solveButton').disabled = false;
+        }
+
+        function shuffleBoard() {
+            for (let i = board.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [board[i], board[j]] = [board[j], board[i]];
+            }
+        }
+
+        function isSolvable() {
+            let inversionCount = 0;
+            let emptyTileRow = 0;
+
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] === 0) {
+                    emptyTileRow = Math.floor(i / size) + 1;
+                    continue;
+                }
+                for (let j = i + 1; j < board.length; j++) {
+                    if (board[j] !== 0 && board[i] > board[j]) {
+                        inversionCount++;
+                    }
+                }
+            }
+
+            if (size % 2 === 1) {
+                return inversionCount % 2 === 0;
+            } else {
+                return (inversionCount + size - emptyTileRow) % 2 === 0;
+            }
+        }
+
+        function renderBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            for (let i = 0; i < board.length; i++) {
+                const tile = document.createElement('button');
+                tile.className = 'tile';
+                if (board[i] === 0) {
+                    tile.classList.add('empty');
+                    tile.disabled = true;
+                } else {
+                    tile.textContent = board[i];
+                    tile.onclick = () => moveTile(i);
+                }
+                tile.disabled = gameWon;
+                boardElement.appendChild(tile);
+            }
+        }
+
+        function moveTile(index) {
+            if (gameWon) return;
+            const emptyIndex = board.indexOf(0);
+            if (isAdjacent(index, emptyIndex)) {
+                [board[index], board[emptyIndex]] = [board[emptyIndex], board[index]];
+                renderBoard();
+                checkWinCondition();
+            }
+        }
+
+        function isAdjacent(index1, index2) {
+            const row1 = Math.floor(index1 / size);
+            const col1 = index1 % size;
+            const row2 = Math.floor(index2 / size);
+            const col2 = index2 % size;
+            return (Math.abs(row1 - row2) + Math.abs(col1 - col2) === 1);
+        }
+
+        function isGameWon() {
+            for (let i = 0; i < board.length - 1; i++) {
+                if (board[i] !== i + 1) {
+                    return false;
+                }
+            }
+            return board[board.length - 1] === 0;
+        }
+
+        function checkWinCondition() {
+            if (isGameWon()) {
+                gameWon = true;
+                document.getElementById('message').textContent = 'Congratulations! You won!';
+                document.getElementById('solveButton').disabled = true;
+                renderBoard(); // Re-render to disable all tiles
+            }
+        }
+
+        function newGame() {
+            createBoard();
+            renderBoard();
+        }
+
+        function solveStep() {
+            if (gameWon) return;
+            
+            const emptyIndex = board.indexOf(0);
+            const targetIndex = findBestMove(emptyIndex);
+            
+            if (targetIndex !== -1) {
+                [board[emptyIndex], board[targetIndex]] = [board[targetIndex], board[emptyIndex]];
+                renderBoard();
+                checkWinCondition();
+            }
+        }
+
+        function findBestMove(emptyIndex) {
+            const adjacentIndices = getAdjacentIndices(emptyIndex);
+            let bestScore = -Infinity;
+            let bestIndex = -1;
+
+            for (const index of adjacentIndices) {
+                const score = evaluateMove(index, board[index]);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = index;
+                }
+            }
+
+            return bestIndex;
+        }
+
+        function evaluateMove(index, value) {
+            const targetRow = Math.floor((value - 1) / size);
+            const targetCol = (value - 1) % size;
+            const currentRow = Math.floor(index / size);
+            const currentCol = index % size;
+            return -(Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol));
+        }
+
+        function getAdjacentIndices(index) {
+            const row = Math.floor(index / size);
+            const col = index % size;
+            const adjacent = [];
+
+            if (row > 0) adjacent.push(index - size);
+            if (row < size - 1) adjacent.push(index + size);
+            if (col > 0) adjacent.push(index - 1);
+            if (col < size - 1) adjacent.push(index + 1);
+
+            return adjacent;
+        }
+
+        // Initialize the game
+        newGame();
+    </script>
+</body>
+</html>

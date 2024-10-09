@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of 15 Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            text-align: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #5c4033;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            background-color: #f5f1e9;
+            color: #5c4033;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            border-radius: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .empty {
+            background-color: #d3bfa7;
+            cursor: default;
+        }
+        .tile:hover:not(.empty) {
+            background-color: #f39c12;
+            color: white;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Game of 15 Simulator</h1>
+        <div class="board" id="board"></div>
+        <button onclick="newGame()">New Game</button>
+        <button id="timerButton" onclick="toggleTimer()">Start Timer</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let board = [];
+        const size = 4;
+        let gameWon = false;
+        let timer = null;
+        let timerRunning = false;
+        let secondsElapsed = 0;
+
+        function createBoard() {
+            board = Array.from({ length: size * size }, (_, i) => i);
+            shuffleBoard();
+            while (!isSolvable() || isGameWon()) {
+                shuffleBoard();
+            }
+            gameWon = false;
+            document.getElementById('message').textContent = '';
+            renderBoard();
+            startTimer(true);
+        }
+
+        function shuffleBoard() {
+            for (let i = board.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [board[i], board[j]] = [board[j], board[i]];
+            }
+        }
+
+        function isSolvable() {
+            let inversionCount = 0;
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] === 0) continue;
+                for (let j = i + 1; j < board.length; j++) {
+                    if (board[j] !== 0 && board[i] > board[j]) {
+                        inversionCount++;
+                    }
+                }
+            }
+            const emptyTileRow = Math.floor(board.indexOf(0) / size);
+            if (size % 2 === 1) {
+                return inversionCount % 2 === 0;
+            } else {
+                return (inversionCount + emptyTileRow) % 2 === 0;
+            }
+        }
+
+        function renderBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            for (let i = 0; i < board.length; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                if (board[i] === 0) {
+                    tile.classList.add('empty');
+                } else {
+                    tile.textContent = board[i];
+                    tile.onclick = () => moveTile(i);
+                }
+                boardElement.appendChild(tile);
+            }
+        }
+
+        function moveTile(index) {
+            if (gameWon) return;
+            const emptyIndex = board.indexOf(0);
+            const row1 = Math.floor(index / size);
+            const col1 = index % size;
+            const row2 = Math.floor(emptyIndex / size);
+            const col2 = emptyIndex % size;
+
+            if (row1 === row2) {
+                if (col1 < col2) {
+                    for (let i = col2; i > col1; i--) {
+                        board[row1 * size + i] = board[row1 * size + i - 1];
+                    }
+                } else {
+                    for (let i = col2; i < col1; i++) {
+                        board[row1 * size + i] = board[row1 * size + i + 1];
+                    }
+                }
+                board[row1 * size + col1] = 0;
+            } else if (col1 === col2) {
+                if (row1 < row2) {
+                    for (let i = row2; i > row1; i--) {
+                        board[i * size + col1] = board[(i - 1) * size + col1];
+                    }
+                } else {
+                    for (let i = row2; i < row1; i++) {
+                        board[i * size + col1] = board[(i + 1) * size + col1];
+                    }
+                }
+                board[row1 * size + col1] = 0;
+            } else {
+                return;
+            }
+
+            renderBoard();
+            checkWinCondition();
+        }
+
+        function isGameWon() {
+            for (let i = 0; i < board.length - 1; i++) {
+                if (board[i] !== i + 1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function checkWinCondition() {
+            if (isGameWon()) {
+                gameWon = true;
+                document.getElementById('message').textContent = 'Congratulations! You won!';
+                stopTimer();
+                disableAllTiles();
+            }
+        }
+
+        function disableAllTiles() {
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(tile => tile.onclick = null);
+        }
+
+        function newGame() {
+            createBoard();
+        }
+
+        function startTimer(reset = false) {
+            if (timer) {
+                clearInterval(timer);
+            }
+            if (reset) {
+                secondsElapsed = 0;
+            }
+            timerRunning = true;
+            document.getElementById('timerButton').textContent = formatTime(secondsElapsed);
+            timer = setInterval(() => {
+                secondsElapsed++;
+                document.getElementById('timerButton').textContent = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+            timer = null;
+            timerRunning = false;
+        }
+
+        function toggleTimer() {
+            if (timerRunning) {
+                stopTimer();
+                document.getElementById('timerButton').textContent = `Paused at ${formatTime(secondsElapsed)}`;
+            } else {
+                timerRunning = true;
+                document.getElementById('timerButton').textContent = formatTime(secondsElapsed);
+                timer = setInterval(() => {
+                    secondsElapsed++;
+                    document.getElementById('timerButton').textContent = formatTime(secondsElapsed);
+                }, 1000);
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        newGame();
+    </script>
+</body>
+</html>

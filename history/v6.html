@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of 15</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600&display=swap');
+
+        /* General body styles */
+        body {
+            font-family: "Fira Sans", sans-serif;
+            font-weight: 600;
+            font-style: normal;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #F9F6E9;
+        }
+
+        /* Header styles */
+        h1 {
+            color: #776e65;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Remove pointer-events: none; */
+            background: rgba(0, 0, 0, 0.7);
+            color: #D3A15A;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            visibility: hidden;
+            z-index: 10;
+        }
+        /* Game container styles */
+        .game-container {
+            position: relative;
+            text-align: center;
+        }
+
+        /* Board styles */
+        .board {
+            position: relative; /* Ensure overlay positions correctly */
+            margin-bottom: 20px;
+            background-color: #B9AEA1;
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #000;
+        }
+
+        /* Tiles container styles */
+        #tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        /* Tile styles */
+        .tile {
+            width: 80px;
+            height: 80px;
+            background-color: #ECE0CA;
+            color: #766E66;
+            font-size: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
+            /* transition: background-color 0.3s ease, color 0.3s ease; */
+            /* transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; */
+            transition: background-color 0.3s ease 0s, color 0.3s ease 0s, transform 0.3s ease 1s;
+
+        }
+
+        .tile:hover:not(.empty):not(.disabled) {
+            background-color: #EAB47F;
+            color: #F9F6F3;
+            cursor: pointer;
+        }
+
+        /* Empty tile styles */
+        .empty {
+            background-color: #C9BCAD;
+            box-shadow: none;
+        }
+
+        /* Disabled tile styles */
+        .disabled {
+            background-color: #E4E4E4;
+            color: #969696;
+        }
+
+        /* Button styles */
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            background: #8C7B68;
+            color: #F7F4F1;
+            border: none;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #AA9681;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Game of 15</h1>
+        <div class="board" id="board">
+            <div id="tiles"></div>
+            <div id="overlay" class="overlay">Game Over</div>
+        </div>
+        <button onclick="newGame()">New Game</button>
+        <button onclick="solveStep()" id="solveButton">Solve Step</button>
+        
+    </div>
+
+    <script>
+        let size = 4;
+        let board = [];
+        let gameWon = false;
+        let solutionPath = [];
+        const goalState = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
+
+        function newGame() {
+            board = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
+            shuffleBoard();
+            while (!isSolvable() || isGameWon()) {
+                shuffleBoard();
+            }
+            gameWon = false;
+            solutionPath = [];
+            renderBoard();
+            document.getElementById('solveButton').disabled = false;
+            const overlayElement = document.getElementById('overlay'); 
+            if (overlayElement) { 
+                overlayElement.style.visibility = 'hidden'; 
+                overlayElement.style.pointerEvents = 'none'; // Reset pointer events
+            }
+        }
+
+        function shuffleBoard() {
+            for (let i = board.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [board[i], board[j]] = [board[j], board[i]];
+            }
+        }
+
+        function isSolvable() {
+            let inversionCount = 0;
+            const boardLength = board.length;
+
+            // Step 1: Count Inversions
+            for (let i = 0; i < boardLength; i++) {
+                for (let j = i + 1; j < boardLength; j++) {
+                    if (board[i] !== 0 && board[j] !== 0 && board[i] > board[j]) {
+                        inversionCount++;
+                    }
+                }
+            }
+
+            // Step 2: Locate the Blank Tile (0)
+            const blankIndex = board.indexOf(0);
+            const blankRowFromBottom = size - Math.floor(blankIndex / size);
+
+            // Step 3: Apply Solvability Rules
+            if (size % 2 === 1) {
+                return inversionCount % 2 === 0;
+            } else {
+                return (inversionCount + blankRowFromBottom) % 2 === 1;
+            }
+        }
+
+        function renderBoard() {
+            const boardElement = document.getElementById('board');
+            const tilesElement = document.getElementById('tiles');
+            tilesElement.innerHTML = ''; // Clear tiles only
+            boardElement.style.backgroundColor = gameWon ? '#ADADAD' : '#B9AEA1';
+            for (let i = 0; i < board.length; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                if (board[i] === 0) {
+                    tile.classList.add('empty');
+                    if (gameWon) {
+                        tile.style.backgroundColor = '#E4E4E4';
+                    }
+                } else {
+                    tile.textContent = board[i];
+                    if (!gameWon) {
+                        tile.onclick = () => moveTile(i);
+                        tile.classList.remove('disabled');
+                    } else {
+                        tile.classList.add('disabled');
+                    }
+                }
+                tilesElement.appendChild(tile); // Append tiles to tilesElement
+            }
+        }
+
+        function isGameWon() {
+            return board.every((value, index) => value === goalState[index]);
+        }
+
+        function moveTile(index) {
+            if (gameWon) return;
+            const emptyIndex = board.indexOf(0);
+            const row = Math.floor(index / size);
+            const col = index % size;
+            const emptyRow = Math.floor(emptyIndex / size);
+            const emptyCol = emptyIndex % size;
+
+            if (row === emptyRow) {
+                const step = emptyCol > col ? 1 : -1;
+                for (let i = emptyCol; i !== col; i -= step) {
+                    board[emptyRow * size + i] = board[emptyRow * size + i - step];
+                }
+                board[emptyRow * size + col] = 0;
+            } else if (col === emptyCol) {
+                const step = emptyRow > row ? 1 : -1;
+                for (let i = emptyRow; i !== row; i -= step) {
+                    board[i * size + emptyCol] = board[(i - step) * size + emptyCol];
+                }
+                board[row * size + emptyCol] = 0;
+            }
+            renderBoard();
+            if (isGameWon()) {
+                gameWon = true;
+                renderBoard();
+                const overlayElement = document.getElementById('overlay');
+                if (overlayElement) {
+                    overlayElement.style.visibility = 'visible';
+                    overlayElement.style.pointerEvents = 'auto'; // Added line
+                }
+                document.getElementById('solveButton').disabled = true;
+            }
+        }
+
+        function solveStep() {
+            if (gameWon) return;
+            if (solutionPath.length === 0) {
+                solutionPath = greedyBestFirstSearch(board.slice());
+            }
+            if (solutionPath.length > 0) {
+                board = solutionPath.shift();
+                renderBoard();
+                if (isGameWon()) {
+                    gameWon = true;
+                    renderBoard();
+                    const overlayElement = document.getElementById('overlay');
+                    if (overlayElement) {
+                        overlayElement.style.visibility = 'visible';
+                        overlayElement.style.pointerEvents = 'auto'; // Added line
+                    }
+                    document.getElementById('solveButton').disabled = true;
+                }
+            }
+        }
+
+        function greedyBestFirstSearch(startState) {
+            const openSet = [];
+            openSet.push({ state: startState, priority: manhattanDistance(startState) });
+            const cameFrom = new Map();
+            const closedSet = new Set();
+
+            while (openSet.length > 0) {
+                openSet.sort((a, b) => a.priority - b.priority);
+                const current = openSet.shift();
+
+                if (arraysEqual(current.state, goalState)) {
+                    return reconstructPath(cameFrom, current.state);
+                }
+
+                closedSet.add(arrayToString(current.state));
+
+                const neighbors = getNeighbors(current.state);
+                for (const neighbor of neighbors) {
+                    const neighborString = arrayToString(neighbor);
+                    if (closedSet.has(neighborString)) {
+                        continue;
+                    }
+                    if (!openSet.some(item => arraysEqual(item.state, neighbor))) {
+                        openSet.push({ state: neighbor, priority: manhattanDistance(neighbor) });
+                        cameFrom.set(neighborString, current.state);
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        function reconstructPath(cameFrom, current) {
+            const path = [current];
+            while (cameFrom.has(arrayToString(current))) {
+                current = cameFrom.get(arrayToString(current));
+                path.unshift(current);
+            }
+            return path.slice(1);
+        }
+
+        function getNeighbors(state) {
+            const neighbors = [];
+            const emptyIndex = state.indexOf(0);
+            const row = Math.floor(emptyIndex / size);
+            const col = emptyIndex % size;
+
+            const directions = [
+                { rowOffset: -1, colOffset: 0 },
+                { rowOffset: 1, colOffset: 0 },
+                { rowOffset: 0, colOffset: -1 },
+                { rowOffset: 0, colOffset: 1 }
+            ];
+
+            for (const { rowOffset, colOffset } of directions) {
+                const newRow = row + rowOffset;
+                const newCol = col + colOffset;
+                if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
+                    const newIndex = newRow * size + newCol;
+                    const newState = state.slice();
+                    [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
+                    neighbors.push(newState);
+                }
+            }
+
+            return neighbors;
+        }
+
+        function manhattanDistance(state) {
+            let distance = 0;
+            for (let i = 0; i < state.length; i++) {
+                if (state[i] !== 0) {
+                    const correctPosition = state[i] - 1;
+                    const currentRow = Math.floor(i / size);
+                    const currentCol = i % size;
+                    const correctRow = Math.floor(correctPosition / size);
+                    const correctCol = correctPosition % size;
+                    distance += Math.abs(currentRow - correctRow) + Math.abs(currentCol - correctCol);
+                }
+            }
+            return distance;
+        }
+
+        function arraysEqual(a, b) {
+            return a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        function arrayToString(array) {
+            return array.join(',');
+        }
+
+        newGame();
+    </script>
+</body>
+</html>
