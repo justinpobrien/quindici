@@ -38,6 +38,7 @@
             font-size: 1em;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #8b7562;
@@ -88,8 +89,12 @@
     </div>
     <div id="board" class="board"></div>
     <div id="result"></div>
+    <button id="solveButton" onclick="solveBoard()" style="display:none;">Solve</button>
 
     <script>
+        let solutionPath = [];
+        let currentStep = 0;
+
         function renderBoard(board) {
             const boardDiv = document.getElementById("board");
             boardDiv.innerHTML = "";
@@ -163,6 +168,7 @@
             } catch (error) {
                 document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
                 document.getElementById("result").className = "";
+                document.getElementById("solveButton").style.display = "none";
                 return;
             }
 
@@ -172,6 +178,117 @@
             const resultDiv = document.getElementById("result");
             resultDiv.textContent = solvable ? "Solvable!" : "Unsolvable";
             resultDiv.className = solvable ? "solvable" : "unsolvable";
+
+            if (solvable) {
+                document.getElementById("solveButton").style.display = "inline-block";
+                solutionPath = greedyBestFirstSearch(board.slice());
+                currentStep = 0;
+            } else {
+                document.getElementById("solveButton").style.display = "none";
+            }
+        }
+
+        function solveBoard() {
+            if (currentStep < solutionPath.length) {
+                renderBoard(solutionPath[currentStep]);
+                currentStep++;
+                setTimeout(solveBoard, 500);
+            }
+        }
+
+        function greedyBestFirstSearch(startState) {
+            const openSet = [];
+            openSet.push({ state: startState, priority: manhattanDistance(startState) });
+            const cameFrom = new Map();
+            const closedSet = new Set();
+
+            while (openSet.length > 0) {
+                openSet.sort((a, b) => a.priority - b.priority);
+                const current = openSet.shift();
+
+                if (arraysEqual(current.state, goalState())) {
+                    return reconstructPath(cameFrom, current.state);
+                }
+
+                closedSet.add(arrayToString(current.state));
+
+                const neighbors = getNeighbors(current.state);
+                for (const neighbor of neighbors) {
+                    const neighborString = arrayToString(neighbor);
+                    if (closedSet.has(neighborString)) {
+                        continue;
+                    }
+                    if (!openSet.some(item => arraysEqual(item.state, neighbor))) {
+                        openSet.push({ state: neighbor, priority: manhattanDistance(neighbor) });
+                        cameFrom.set(neighborString, current.state);
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        function reconstructPath(cameFrom, current) {
+            const path = [current];
+            while (cameFrom.has(arrayToString(current))) {
+                current = cameFrom.get(arrayToString(current));
+                path.unshift(current);
+            }
+            return path.slice(1);
+        }
+
+        function getNeighbors(state) {
+            const neighbors = [];
+            const emptyIndex = state.indexOf(0);
+            const row = Math.floor(emptyIndex / 4);
+            const col = emptyIndex % 4;
+
+            const directions = [
+                { rowOffset: -1, colOffset: 0 },
+                { rowOffset: 1, colOffset: 0 },
+                { rowOffset: 0, colOffset: -1 },
+                { rowOffset: 0, colOffset: 1 }
+            ];
+
+            for (const { rowOffset, colOffset } of directions) {
+                const newRow = row + rowOffset;
+                const newCol = col + colOffset;
+                if (newRow >= 0 && newRow < 4 && newCol >= 0 && newCol < 4) {
+                    const newIndex = newRow * 4 + newCol;
+                    const newState = state.slice();
+                    [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
+                    neighbors.push(newState);
+                }
+            }
+
+            return neighbors;
+        }
+
+        function manhattanDistance(state) {
+            let distance = 0;
+            for (let i = 0; i < state.length; i++) {
+                if (state[i] !== 0) {
+                    const correctPosition = state[i] - 1;
+                    const currentRow = Math.floor(i / 4);
+                    const currentCol = i % 4;
+                    const correctRow = Math.floor(correctPosition / 4);
+                    const correctCol = correctPosition % 4;
+                    distance += Math.abs(currentRow - correctRow) + Math.abs(currentCol - correctCol);
+                }
+            }
+            return distance;
+        }
+
+        function arraysEqual(a, b) {
+            return a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        function arrayToString(array) {
+            return array.join(',');
+        }
+
+        function goalState() {
+            return Array.from({ length: 15 }, (_, i) => i + 1).concat(0);
         }
     </script>
 </body>
