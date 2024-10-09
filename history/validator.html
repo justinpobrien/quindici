@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Validator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #4b3f3b;
+            color: #f0f0f0;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .input-container {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: 400px;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #a48c7a;
+            color: #f0f0f0;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #8b7562;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            gap: 10px;
+            margin-top: 20px;
+            background-color: #6b5e55;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .tile {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e6d7c3;
+            color: #4b3f3b;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .tile.empty {
+            background-color: #d9c7b6;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        #result.solvable {
+            color: #00cc00;
+        }
+        #result.unsolvable {
+            color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Board Validator</h1>
+    <div class="input-container">
+        <label for="boardInput">Enter the board state as a formatted array</label><br>
+        <input type="text" id="boardInput" placeholder="[6, 1, 13, 2, 14, 15, 10, 3, 5, 8, 9, 4, 11, 0, 12, 7]">
+        <button onclick="checkSolvability()">Validate Board</button>
+    </div>
+    <div id="board" class="board"></div>
+    <div id="result"></div>
+
+    <script>
+        function renderBoard(board) {
+            const boardDiv = document.getElementById("board");
+            boardDiv.innerHTML = "";
+            board.forEach(value => {
+                const tile = document.createElement("div");
+                tile.classList.add("tile");
+                if (value === 0) {
+                    tile.classList.add("empty");
+                    tile.textContent = "";
+                } else {
+                    tile.textContent = value;
+                }
+                boardDiv.appendChild(tile);
+            });
+        }
+
+        function isSolvable(board) {
+            /**
+             * Determines if a given 4x4 puzzle is solvable.
+             *
+             * Parameters:
+             * - board (array of int): The puzzle state represented as a flat list.
+             *                         Use 0 to represent the blank tile.
+             *
+             * Returns:
+             * - bool: True if the puzzle is solvable, False otherwise.
+             */
+            const size = 4;
+            let inversionCount = 0;
+            const boardLength = board.length;
+
+            // Step 1: Count Inversions
+            for (let i = 0; i < boardLength; i++) {
+                for (let j = i + 1; j < boardLength; j++) {
+                    if (board[i] !== 0 && board[j] !== 0 && board[i] > board[j]) {
+                        inversionCount++;
+                    }
+                }
+            }
+
+            // Step 2: Locate the Blank Tile (0)
+            const blankIndex = board.indexOf(0);
+            if (blankIndex === -1) {
+                throw new Error("The board must contain a blank tile represented by 0.");
+            }
+
+            // Calculate the row of the blank tile from the bottom
+            const blankRowFromBottom = size - Math.floor(blankIndex / size);
+
+            // Step 3: Apply Solvability Rules
+            if (size % 2 === 1) {
+                // Odd grid size: Solvable if inversions count is even
+                return inversionCount % 2 === 0;
+            } else {
+                // Even grid size:
+                // - If blank is on an odd row from the bottom, inversions must be even
+                // - If blank is on an even row from the bottom, inversions must be odd
+                return (inversionCount + blankRowFromBottom) % 2 === 1;
+            }
+        }
+
+        function checkSolvability() {
+            const boardInput = document.getElementById("boardInput").value;
+            let board;
+
+            try {
+                board = JSON.parse(boardInput);
+                if (!Array.isArray(board) || board.length !== 16) {
+                    throw new Error();
+                }
+            } catch (error) {
+                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
+                document.getElementById("result").className = "";
+                return;
+            }
+
+            renderBoard(board);
+
+            const solvable = isSolvable(board);
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = solvable ? "Solvable!" : "Unsolvable";
+            resultDiv.className = solvable ? "solvable" : "unsolvable";
+        }
+    </script>
+</body>
+</html>
