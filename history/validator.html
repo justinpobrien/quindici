@@ -68,6 +68,9 @@
         .tile.empty {
             background-color: #C9BCAD;
         }
+        .tile.highlight {
+            background-color: #ffeb3b;
+        }
         #result {
             margin-top: 20px;
             font-size: 1.5em;
@@ -106,10 +109,10 @@
             workerScript: 'gif.worker.js'
         });
 
-        function renderBoard(board, isGifFrame = false) {
+        function renderBoard(board, isGifFrame = false, highlightIndex = -1) {
             const boardDiv = document.getElementById("board");
             boardDiv.innerHTML = "";
-            board.forEach(value => {
+            board.forEach((value, index) => {
                 const tile = document.createElement("div");
                 tile.classList.add("tile");
                 if (value === 0) {
@@ -118,17 +121,20 @@
                 } else {
                     tile.textContent = value;
                 }
+                if (index === highlightIndex) {
+                    tile.classList.add("highlight");
+                }
                 boardDiv.appendChild(tile);
             });
 
             if (isGifFrame) {
-                renderToCanvas(board);
+                renderToCanvas(board, highlightIndex);
                 const canvas = document.getElementById("boardCanvas");
                 gif.addFrame(canvas, { delay: 500, copy: true });
             }
         }
 
-        function renderToCanvas(board) {
+        function renderToCanvas(board, highlightIndex = -1) {
             const canvas = document.getElementById("boardCanvas");
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -147,7 +153,7 @@
                 const x = boardPadding + col * (tileSize + gap);
                 const y = boardPadding + row * (tileSize + gap);
 
-                ctx.fillStyle = value === 0 ? "#d9c7b6" : "#e6d7c3";
+                ctx.fillStyle = index === highlightIndex ? "#ffeb3b" : value === 0 ? "#d9c7b6" : "#e6d7c3";
                 ctx.fillRect(x, y, tileSize, tileSize);
                 ctx.strokeStyle = "#6b5e55";
                 ctx.lineWidth = 1;
@@ -224,7 +230,15 @@
 
         function solveBoard() {
             if (currentStep < solutionPath.length) {
-                renderBoard(solutionPath[currentStep], true);
+                const previousState = currentStep > 0 ? solutionPath[currentStep - 1] : null;
+                const currentState = solutionPath[currentStep];
+                let highlightIndex = -1;
+
+                if (previousState) {
+                    highlightIndex = currentState.findIndex((value, index) => value !== previousState[index] && value !== 0);
+                }
+
+                renderBoard(currentState, true, highlightIndex);
                 currentStep++;
                 setTimeout(solveBoard, 500);
             } else {
