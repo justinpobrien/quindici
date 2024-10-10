@@ -229,23 +229,24 @@
         }
 
         function solveBoard() {
-            // Add the initial board state as the first frame
             if (currentStep === 0) {
                 renderBoard(solutionPath[currentStep], true);
+                currentStep++;
+                setTimeout(solveBoard, 500);
+                return;
             }
 
             if (currentStep < solutionPath.length) {
-                const previousState = currentStep > 0 ? solutionPath[currentStep - 1] : null;
+                const previousState = solutionPath[currentStep - 1];
                 const currentState = solutionPath[currentStep];
-                let highlightIndex = -1;
+                let highlightIndex = previousState.findIndex((value, index) => value !== currentState[index] && value !== 0);
 
-                if (previousState) {
-                    highlightIndex = currentState.findIndex((value, index) => value !== previousState[index] && value !== 0);
-                }
-
-                renderBoard(currentState, true, highlightIndex);
-                currentStep++;
-                setTimeout(solveBoard, 500);
+                renderBoard(previousState, true, highlightIndex); // Highlight the tile before it is moved
+                setTimeout(() => {
+                    renderBoard(currentState, true);
+                    currentStep++;
+                    setTimeout(solveBoard, 500);
+                }, 500);
             } else {
                 gif.render();
             }
