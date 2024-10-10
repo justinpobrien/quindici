@@ -229,6 +229,11 @@
         }
 
         function solveBoard() {
+            // Add the initial board state as the first frame
+            if (currentStep === 0) {
+                renderBoard(solutionPath[currentStep], true);
+            }
+
             if (currentStep < solutionPath.length) {
                 const previousState = currentStep > 0 ? solutionPath[currentStep - 1] : null;
                 const currentState = solutionPath[currentStep];
