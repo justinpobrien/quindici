@@ -94,8 +94,8 @@
     <div id="board" class="board"></div>
     <div id="result"></div>
     <button id="solveButton" onclick="solveBoard()" style="display:none;">Solve</button>
-    <button id="saveGifButton" onclick="saveGif()" style="display:none;">Save as GIF</button>
     <canvas id="boardCanvas" width="300" height="300"></canvas>
+    <div id="gifContainer"></div>
 
     <script>
         let solutionPath = [];
@@ -195,7 +195,6 @@
                 document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
                 document.getElementById("result").className = "";
                 document.getElementById("solveButton").style.display = "none";
-                document.getElementById("saveGifButton").style.display = "none";
                 return;
             }
 
@@ -208,12 +207,10 @@
 
             if (solvable) {
                 document.getElementById("solveButton").style.display = "inline-block";
-                document.getElementById("saveGifButton").style.display = "inline-block";
                 solutionPath = greedyBestFirstSearch(board.slice());
                 currentStep = 0;
             } else {
                 document.getElementById("solveButton").style.display = "none";
-                document.getElementById("saveGifButton").style.display = "none";
             }
         }
 
@@ -230,16 +227,10 @@
         gif.on('finished', function(blob) {
             const img = document.createElement('img');
             img.src = URL.createObjectURL(blob);
-            document.body.appendChild(img);
+            const gifContainer = document.getElementById('gifContainer');
+            gifContainer.innerHTML = '';
+            gifContainer.appendChild(img);
         });
-
-        function saveGif() {
-            if (solutionPath.length > 0) {
-                currentStep = 0;
-                renderBoard(solutionPath[currentStep], true);
-                solveBoard();
-            }
-        }
 
         function greedyBestFirstSearch(startState) {
             const openSet = [];
