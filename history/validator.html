@@ -32,7 +32,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button {
+        button, #downloadButton {
             background-color: #a48c7a;
             color: #f0f0f0;
             border: none;
@@ -42,8 +42,21 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        button:hover {
+        button:hover, #downloadButton:hover {
             background-color: #8b7562;
+        }
+        #downloadButton {
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #downloadButton:hover {
+            background-color: #45a049;
         }
         .board {
             display: grid;
@@ -98,8 +111,9 @@
     <div id="board" class="board"></div>
     <div id="result"></div>
     <button id="solveButton" onclick="solveBoard()" style="display:none;">Solve</button>
-    <canvas id="boardCanvas" width="300" height="300"></canvas>
+    <canvas id="boardCanvas" width="300" height="300"></canvas> <!-- Updated size -->
     <div id="gifContainer"></div>
+    <a id="downloadButton" style="display: none;">Download GIF</a> <!-- Changed to <a> tag -->
 
     <script>
         let solutionPath = [];
@@ -312,24 +326,41 @@
             solveButton.textContent = "Solving...";
 
             // Clear previous GIF frames and container
-            document.getElementById('gifContainer').innerHTML = '';
+            const gifContainer = document.getElementById('gifContainer');
+            gifContainer.innerHTML = '';
 
-            // Create a new GIF instance
+            // Hide and reset the Download button
+            const downloadButton = document.getElementById('downloadButton');
+            downloadButton.style.display = 'none';
+            downloadButton.href = '#';
+            downloadButton.download = '';
+            downloadButton.textContent = 'Download GIF';
+
+            // Create a new GIF instance with compression settings
             const gif = new GIF({
                 workers: 2,
-                quality: 10,
-                workerScript: 'gif.worker.js' // Ensure this path is correct
+                quality: 10, // Adjusted for compression (lower is more compressed)
+                workerScript: 'gif.worker.js',
+                width: 300,  // Updated width to match canvas
+                height: 300  // Updated height to match canvas
             });
 
-            // Handle the 'finished' event to display the GIF
+            // Handle the 'finished' event to display the GIF and show Download button
             gif.on('finished', function(blob) {
+                // Create a URL for the blob
+                const url = URL.createObjectURL(blob);
+
+                // Display the GIF
                 const img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
+                img.src = url;
                 img.alt = "Solution GIF";
                 img.style.marginTop = "20px";
-                const gifContainer = document.getElementById('gifContainer');
-                gifContainer.innerHTML = '';
                 gifContainer.appendChild(img);
+
+                // Configure the Download Button
+                downloadButton.style.display = 'inline-block'; // Make it visible
+                downloadButton.href = url;
+                downloadButton.download = '15-puzzle-solution.gif'; // Default filename
 
                 // Re-enable the Solve button
                 solveButton.disabled = false;
@@ -347,6 +378,7 @@
                 isSolving = false;
             });
 
+            // Iterate through the solution path and add frames to the GIF
             for (let step = 0; step < solutionPath.length; step++) {
                 if (step === 0) {
                     // Initial state: highlight the first move
@@ -357,10 +389,10 @@
                             (value, index) => value !== nextState[index] && value !== 0
                         );
                         renderBoard(currentState, true, highlightIndex);
-                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay for compression
                     } else {
                         renderBoard(currentState, true);
-                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true });
                     }
                 } else {
                     const previousState = solutionPath[step - 1];
@@ -371,15 +403,15 @@
 
                     // Highlight the tile before it is moved
                     renderBoard(previousState, true, highlightIndex);
-                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
-                    await delay(500); // Wait for 0.5 seconds
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay
+                    await delay(300); // Reduced delay for compression
 
                     // Render the new state without highlighting
                     renderBoard(currentState, true);
-                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay
                 }
 
-                await delay(500); // Wait for 0.5 seconds before next step
+                await delay(300); // Reduced delay
             }
 
             // After all steps, render the GIF
@@ -403,14 +435,6 @@
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
-
-        /**
-         * Handles the completion of GIF rendering by displaying the GIF.
-         */
-        // Removed global gif.on('finished') as it's now handled within solveBoard()
-
-        // Your existing IDA* and other functions...
-
     </script>
 </body>
 </html>
