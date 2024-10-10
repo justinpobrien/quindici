@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Board Validator</title>
+    <title>15-Puzzle Solver</title>
+    <!-- GIF.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         body {
@@ -88,7 +89,7 @@
     </style>
 </head>
 <body>
-    <h1>Board Validator</h1>
+    <h1>15-Puzzle Solver</h1>
     <div class="input-container">
         <label for="boardInput">Enter the board state as a formatted array</label><br>
         <input type="text" id="boardInput" placeholder="[6, 1, 13, 2, 14, 15, 10, 3, 5, 8, 9, 4, 11, 0, 12, 7]">
@@ -103,12 +104,14 @@
     <script>
         let solutionPath = [];
         let currentStep = 0;
-        const gif = new GIF({
-            workers: 2,
-            quality: 10,
-            workerScript: 'gif.worker.js'
-        });
+        let isSolving = false; // Flag to prevent multiple solves
 
+        /**
+         * Renders the board state to the DOM and optionally adds a frame to the GIF.
+         * @param {Array} board - The current board state.
+         * @param {boolean} isGifFrame - Whether to capture this render as a GIF frame.
+         * @param {number} highlightIndex - The index of the tile to highlight.
+         */
         function renderBoard(board, isGifFrame = false, highlightIndex = -1) {
             const boardDiv = document.getElementById("board");
             boardDiv.innerHTML = "";
@@ -129,11 +132,14 @@
 
             if (isGifFrame) {
                 renderToCanvas(board, highlightIndex);
-                const canvas = document.getElementById("boardCanvas");
-                gif.addFrame(canvas, { delay: 500, copy: true });
             }
         }
 
+        /**
+         * Renders the board state to a hidden canvas for GIF creation.
+         * @param {Array} board - The current board state.
+         * @param {number} highlightIndex - The index of the tile to highlight.
+         */
         function renderToCanvas(board, highlightIndex = -1) {
             const canvas = document.getElementById("boardCanvas");
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -169,6 +175,11 @@
             });
         }
 
+        /**
+         * Determines if a given board state is solvable.
+         * @param {Array} board - The board state to check.
+         * @returns {boolean} - True if solvable, false otherwise.
+         */
         function isSolvable(board) {
             const size = 4;
             let inversionCount = 0;
@@ -196,6 +207,9 @@
             }
         }
 
+        /**
+         * Validates the input board and initializes the solving process if solvable.
+         */
         function checkSolvability() {
             const boardInput = document.getElementById("boardInput").value;
             let board;
@@ -205,8 +219,12 @@
                 if (!Array.isArray(board) || board.length !== 16) {
                     throw new Error();
                 }
+                const uniqueSet = new Set(board);
+                if (uniqueSet.size !== 16 || !uniqueSet.has(0)) {
+                    throw new Error();
+                }
             } catch (error) {
-                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
+                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 unique numbers including 0.";
                 document.getElementById("result").className = "";
                 document.getElementById("solveButton").style.display = "none";
                 return;
@@ -221,139 +239,178 @@
 
             if (solvable) {
                 document.getElementById("solveButton").style.display = "inline-block";
-                solutionPath = greedyBestFirstSearch(board.slice());
-                currentStep = 0;
+                // Run IDA* search asynchronously using a Web Worker
+                runIDAStarWorker(board.slice());
             } else {
                 document.getElementById("solveButton").style.display = "none";
             }
         }
 
-        function solveBoard() {
-            if (currentStep === 0) {
-                renderBoard(solutionPath[currentStep], true);
-                currentStep++;
-                setTimeout(solveBoard, 500);
+        /**
+         * Initializes a Web Worker to run the IDA* Search algorithm asynchronously.
+         * @param {Array} board - The initial board state.
+         */
+        function runIDAStarWorker(board) {
+            // Disable the Validate button to prevent multiple runs
+            const validateButton = document.querySelector('button[onclick="checkSolvability()"]');
+            validateButton.disabled = true;
+            document.getElementById("result").textContent = "Solving...";
+            solutionPath = [];
+            currentStep = 0;
+
+            // Create a new Web Worker
+            const worker = new Worker('solverWorker.js');
+
+            // Listen for messages (solution path) from the worker
+            worker.onmessage = function(e) {
+                solutionPath = e.data;
+                if (solutionPath.length === 0) {
+                    document.getElementById("result").textContent = "No solution found.";
+                    document.getElementById("result").className = "unsolvable";
+                    document.getElementById("solveButton").style.display = "none";
+                } else {
+                    document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
+                    document.getElementById("result").className = "solvable";
+                }
+                validateButton.disabled = false;
+                worker.terminate();
+            };
+
+            // Handle any errors from the worker
+            worker.onerror = function(error) {
+                console.error("Worker error:", error);
+                document.getElementById("result").textContent = "An error occurred during solving.";
+                document.getElementById("result").className = "unsolvable";
+                document.getElementById("solveButton").style.display = "none";
+                validateButton.disabled = false;
+                worker.terminate();
+            };
+
+            // Send the initial board state to the worker
+            worker.postMessage(board);
+        }
+
+        /**
+         * Animates the solving process by iterating through the solution path.
+         */
+        async function solveBoard() {
+            if (solutionPath.length === 0) {
+                alert("No solution path available.");
                 return;
             }
 
-            if (currentStep < solutionPath.length) {
-                const previousState = solutionPath[currentStep - 1];
-                const currentState = solutionPath[currentStep];
-                let highlightIndex = previousState.findIndex((value, index) => value !== currentState[index] && value !== 0);
+            if (isSolving) {
+                alert("A solve operation is already in progress.");
+                return;
+            }
 
-                renderBoard(previousState, true, highlightIndex); // Highlight the tile before it is moved
-                setTimeout(() => {
+            isSolving = true;
+
+            // Disable the Solve button to prevent multiple runs
+            const solveButton = document.getElementById("solveButton");
+            solveButton.disabled = true;
+            solveButton.textContent = "Solving...";
+
+            // Clear previous GIF frames and container
+            document.getElementById('gifContainer').innerHTML = '';
+
+            // Create a new GIF instance
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                workerScript: 'gif.worker.js' // Ensure this path is correct
+            });
+
+            // Handle the 'finished' event to display the GIF
+            gif.on('finished', function(blob) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                img.alt = "Solution GIF";
+                img.style.marginTop = "20px";
+                const gifContainer = document.getElementById('gifContainer');
+                gifContainer.innerHTML = '';
+                gifContainer.appendChild(img);
+
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
+            });
+
+            // Handle any errors during GIF creation
+            gif.on('error', function(error) {
+                console.error("GIF.js error:", error);
+                alert("An error occurred while creating the GIF.");
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
+            });
+
+            for (let step = 0; step < solutionPath.length; step++) {
+                if (step === 0) {
+                    // Initial state: highlight the first move
+                    const currentState = solutionPath[step];
+                    const nextState = solutionPath[step + 1];
+                    if (nextState) {
+                        const highlightIndex = currentState.findIndex(
+                            (value, index) => value !== nextState[index] && value !== 0
+                        );
+                        renderBoard(currentState, true, highlightIndex);
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                    } else {
+                        renderBoard(currentState, true);
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                    }
+                } else {
+                    const previousState = solutionPath[step - 1];
+                    const currentState = solutionPath[step];
+                    const highlightIndex = previousState.findIndex(
+                        (value, index) => value !== currentState[index] && value !== 0
+                    );
+
+                    // Highlight the tile before it is moved
+                    renderBoard(previousState, true, highlightIndex);
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                    await delay(500); // Wait for 0.5 seconds
+
+                    // Render the new state without highlighting
                     renderBoard(currentState, true);
-                    currentStep++;
-                    setTimeout(solveBoard, 500);
-                }, 500);
-            } else {
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
+                }
+
+                await delay(500); // Wait for 0.5 seconds before next step
+            }
+
+            // After all steps, render the GIF
+            try {
                 gif.render();
+            } catch (error) {
+                console.error("GIF.render() error:", error);
+                alert("An error occurred while rendering the GIF.");
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
             }
         }
 
-        gif.on('finished', function(blob) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
-            const gifContainer = document.getElementById('gifContainer');
-            gifContainer.innerHTML = '';
-            gifContainer.appendChild(img);
-        });
-
-        function greedyBestFirstSearch(startState) {
-            const openSet = [];
-            openSet.push({ state: startState, priority: manhattanDistance(startState) });
-            const cameFrom = new Map();
-            const closedSet = new Set();
-
-            while (openSet.length > 0) {
-                openSet.sort((a, b) => a.priority - b.priority);
-                const current = openSet.shift();
-
-                if (arraysEqual(current.state, goalState())) {
-                    return reconstructPath(cameFrom, current.state);
-                }
-
-                closedSet.add(arrayToString(current.state));
-
-                const neighbors = getNeighbors(current.state);
-                for (const neighbor of neighbors) {
-                    const neighborString = arrayToString(neighbor);
-                    if (closedSet.has(neighborString)) {
-                        continue;
-                    }
-                    if (!openSet.some(item => arraysEqual(item.state, neighbor))) {
-                        openSet.push({ state: neighbor, priority: manhattanDistance(neighbor) });
-                        cameFrom.set(neighborString, current.state);
-                    }
-                }
-            }
-
-            return [];
+        /**
+         * Creates a delay for asynchronous operations.
+         * @param {number} ms - The delay duration in milliseconds.
+         * @returns {Promise} - A promise that resolves after the specified delay.
+         */
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        function reconstructPath(cameFrom, current) {
-            const path = [current];
-            while (cameFrom.has(arrayToString(current))) {
-                current = cameFrom.get(arrayToString(current));
-                path.unshift(current);
-            }
-            return path.slice(1);
-        }
+        /**
+         * Handles the completion of GIF rendering by displaying the GIF.
+         */
+        // Removed global gif.on('finished') as it's now handled within solveBoard()
 
-        function getNeighbors(state) {
-            const neighbors = [];
-            const emptyIndex = state.indexOf(0);
-            const row = Math.floor(emptyIndex / 4);
-            const col = emptyIndex % 4;
+        // Your existing IDA* and other functions...
 
-            const directions = [
-                { rowOffset: -1, colOffset: 0 },
-                { rowOffset: 1, colOffset: 0 },
-                { rowOffset: 0, colOffset: -1 },
-                { rowOffset: 0, colOffset: 1 }
-            ];
-
-            for (const { rowOffset, colOffset } of directions) {
-                const newRow = row + rowOffset;
-                const newCol = col + colOffset;
-                if (newRow >= 0 && newRow < 4 && newCol >= 0 && newCol < 4) {
-                    const newIndex = newRow * 4 + newCol;
-                    const newState = state.slice();
-                    [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
-                    neighbors.push(newState);
-                }
-            }
-
-            return neighbors;
-        }
-
-        function manhattanDistance(state) {
-            let distance = 0;
-            for (let i = 0; i < state.length; i++) {
-                if (state[i] !== 0) {
-                    const correctPosition = state[i] - 1;
-                    const currentRow = Math.floor(i / 4);
-                    const currentCol = i % 4;
-                    const correctRow = Math.floor(correctPosition / 4);
-                    const correctCol = correctPosition % 4;
-                    distance += Math.abs(currentRow - correctRow) + Math.abs(currentCol - correctCol);
-                }
-            }
-            return distance;
-        }
-
-        function arraysEqual(a, b) {
-            return a.length === b.length && a.every((val, index) => val === b[index]);
-        }
-
-        function arrayToString(array) {
-            return array.join(',');
-        }
-
-        function goalState() {
-            return Array.from({ length: 15 }, (_, i) => i + 1).concat(0);
-        }
     </script>
 </body>
 </html>
