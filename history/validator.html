@@ -104,11 +104,7 @@
     <script>
         let solutionPath = [];
         let currentStep = 0;
-        const gif = new GIF({
-            workers: 2,
-            quality: 10,
-            workerScript: 'gif.worker.js'
-        });
+        let isSolving = false; // Flag to prevent multiple solves
 
         /**
          * Renders the board state to the DOM and optionally adds a frame to the GIF.
@@ -136,8 +132,6 @@
 
             if (isGifFrame) {
                 renderToCanvas(board, highlightIndex);
-                const canvas = document.getElementById("boardCanvas");
-                gif.addFrame(canvas, { delay: 500, copy: true });
             }
         }
 
@@ -258,7 +252,8 @@
          */
         function runIDAStarWorker(board) {
             // Disable the Validate button to prevent multiple runs
-            document.querySelector('button[onclick="checkSolvability()"]').disabled = true;
+            const validateButton = document.querySelector('button[onclick="checkSolvability()"]');
+            validateButton.disabled = true;
             document.getElementById("result").textContent = "Solving...";
             solutionPath = [];
             currentStep = 0;
@@ -277,7 +272,7 @@
                     document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
                     document.getElementById("result").className = "solvable";
                 }
-                document.querySelector('button[onclick="checkSolvability()"]').disabled = false;
+                validateButton.disabled = false;
                 worker.terminate();
             };
 
@@ -287,7 +282,7 @@
                 document.getElementById("result").textContent = "An error occurred during solving.";
                 document.getElementById("result").className = "unsolvable";
                 document.getElementById("solveButton").style.display = "none";
-                document.querySelector('button[onclick="checkSolvability()"]').disabled = false;
+                validateButton.disabled = false;
                 worker.terminate();
             };
 
@@ -304,9 +299,53 @@
                 return;
             }
 
-            // Clear previous GIF frames
-            gif.frames = [];
+            if (isSolving) {
+                alert("A solve operation is already in progress.");
+                return;
+            }
+
+            isSolving = true;
+
+            // Disable the Solve button to prevent multiple runs
+            const solveButton = document.getElementById("solveButton");
+            solveButton.disabled = true;
+            solveButton.textContent = "Solving...";
+
+            // Clear previous GIF frames and container
             document.getElementById('gifContainer').innerHTML = '';
+
+            // Create a new GIF instance
+            const gif = new GIF({
+                workers: 2,
+                quality: 10,
+                workerScript: 'gif.worker.js' // Ensure this path is correct
+            });
+
+            // Handle the 'finished' event to display the GIF
+            gif.on('finished', function(blob) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                img.alt = "Solution GIF";
+                img.style.marginTop = "20px";
+                const gifContainer = document.getElementById('gifContainer');
+                gifContainer.innerHTML = '';
+                gifContainer.appendChild(img);
+
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
+            });
+
+            // Handle any errors during GIF creation
+            gif.on('error', function(error) {
+                console.error("GIF.js error:", error);
+                alert("An error occurred while creating the GIF.");
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
+            });
 
             for (let step = 0; step < solutionPath.length; step++) {
                 if (step === 0) {
@@ -318,8 +357,10 @@
                             (value, index) => value !== nextState[index] && value !== 0
                         );
                         renderBoard(currentState, true, highlightIndex);
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
                     } else {
                         renderBoard(currentState, true);
+                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
                     }
                 } else {
                     const previousState = solutionPath[step - 1];
@@ -330,17 +371,28 @@
 
                     // Highlight the tile before it is moved
                     renderBoard(previousState, true, highlightIndex);
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
                     await delay(500); // Wait for 0.5 seconds
 
                     // Render the new state without highlighting
                     renderBoard(currentState, true);
+                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 500, copy: true });
                 }
 
                 await delay(500); // Wait for 0.5 seconds before next step
             }
 
             // After all steps, render the GIF
-            gif.render();
+            try {
+                gif.render();
+            } catch (error) {
+                console.error("GIF.render() error:", error);
+                alert("An error occurred while rendering the GIF.");
+                // Re-enable the Solve button
+                solveButton.disabled = false;
+                solveButton.textContent = "Solve";
+                isSolving = false;
+            }
         }
 
         /**
@@ -355,15 +407,10 @@
         /**
          * Handles the completion of GIF rendering by displaying the GIF.
          */
-        gif.on('finished', function(blob) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
-            img.alt = "Solution GIF";
-            img.style.marginTop = "20px";
-            const gifContainer = document.getElementById('gifContainer');
-            gifContainer.innerHTML = '';
-            gifContainer.appendChild(img);
-        });
+        // Removed global gif.on('finished') as it's now handled within solveBoard()
+
+        // Your existing IDA* and other functions...
+
     </script>
 </body>
 </html>
