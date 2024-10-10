@@ -66,7 +66,7 @@
             border-radius: 5px;
         }
         .tile.empty {
-            background-color: #d9c7b6;
+            background-color: #C9BCAD;
         }
         #result {
             margin-top: 20px;
@@ -135,15 +135,23 @@
 
             const tileSize = 60;
             const gap = 10;
+            const boardPadding = 15;
+
+            // Draw board background
+            ctx.fillStyle = "#6b5e55";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             board.forEach((value, index) => {
                 const row = Math.floor(index / 4);
                 const col = index % 4;
-                const x = col * (tileSize + gap);
-                const y = row * (tileSize + gap);
+                const x = boardPadding + col * (tileSize + gap);
+                const y = boardPadding + row * (tileSize + gap);
 
                 ctx.fillStyle = value === 0 ? "#d9c7b6" : "#e6d7c3";
                 ctx.fillRect(x, y, tileSize, tileSize);
+                ctx.strokeStyle = "#6b5e55";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, tileSize, tileSize);
 
                 if (value !== 0) {
                     ctx.fillStyle = "#4b3f3b";
