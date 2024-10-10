@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board Validator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -78,6 +79,9 @@
         #result.unsolvable {
             color: #cc0000;
         }
+        canvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -90,12 +94,19 @@
     <div id="board" class="board"></div>
     <div id="result"></div>
     <button id="solveButton" onclick="solveBoard()" style="display:none;">Solve</button>
+    <button id="saveGifButton" onclick="saveGif()" style="display:none;">Save as GIF</button>
+    <canvas id="boardCanvas" width="300" height="300"></canvas>
 
     <script>
         let solutionPath = [];
         let currentStep = 0;
+        const gif = new GIF({
+            workers: 2,
+            quality: 10,
+            workerScript: 'gif.worker.js'
+        });
 
-        function renderBoard(board) {
+        function renderBoard(board, isGifFrame = false) {
             const boardDiv = document.getElementById("board");
             boardDiv.innerHTML = "";
             board.forEach(value => {
@@ -109,24 +120,46 @@
                 }
                 boardDiv.appendChild(tile);
             });
+
+            if (isGifFrame) {
+                renderToCanvas(board);
+                const canvas = document.getElementById("boardCanvas");
+                gif.addFrame(canvas, { delay: 500, copy: true });
+            }
+        }
+
+        function renderToCanvas(board) {
+            const canvas = document.getElementById("boardCanvas");
+            const ctx = canvas.getContext("2d", { willReadFrequently: true });
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const tileSize = 60;
+            const gap = 10;
+
+            board.forEach((value, index) => {
+                const row = Math.floor(index / 4);
+                const col = index % 4;
+                const x = col * (tileSize + gap);
+                const y = row * (tileSize + gap);
+
+                ctx.fillStyle = value === 0 ? "#d9c7b6" : "#e6d7c3";
+                ctx.fillRect(x, y, tileSize, tileSize);
+
+                if (value !== 0) {
+                    ctx.fillStyle = "#4b3f3b";
+                    ctx.font = "bold 30px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(value, x + tileSize / 2, y + tileSize / 2);
+                }
+            });
         }
 
         function isSolvable(board) {
-            /**
-             * Determines if a given 4x4 puzzle is solvable.
-             *
-             * Parameters:
-             * - board (array of int): The puzzle state represented as a flat list.
-             *                         Use 0 to represent the blank tile.
-             *
-             * Returns:
-             * - bool: True if the puzzle is solvable, False otherwise.
-             */
             const size = 4;
             let inversionCount = 0;
             const boardLength = board.length;
 
-            // Step 1: Count Inversions
             for (let i = 0; i < boardLength; i++) {
                 for (let j = i + 1; j < boardLength; j++) {
                     if (board[i] !== 0 && board[j] !== 0 && board[i] > board[j]) {
@@ -135,23 +168,16 @@
                 }
             }
 
-            // Step 2: Locate the Blank Tile (0)
             const blankIndex = board.indexOf(0);
             if (blankIndex === -1) {
                 throw new Error("The board must contain a blank tile represented by 0.");
             }
 
-            // Calculate the row of the blank tile from the bottom
             const blankRowFromBottom = size - Math.floor(blankIndex / size);
 
-            // Step 3: Apply Solvability Rules
             if (size % 2 === 1) {
-                // Odd grid size: Solvable if inversions count is even
                 return inversionCount % 2 === 0;
             } else {
-                // Even grid size:
-                // - If blank is on an odd row from the bottom, inversions must be even
-                // - If blank is on an even row from the bottom, inversions must be odd
                 return (inversionCount + blankRowFromBottom) % 2 === 1;
             }
         }
@@ -169,6 +195,7 @@
                 document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
                 document.getElementById("result").className = "";
                 document.getElementById("solveButton").style.display = "none";
+                document.getElementById("saveGifButton").style.display = "none";
                 return;
             }
 
@@ -181,18 +208,36 @@
 
             if (solvable) {
                 document.getElementById("solveButton").style.display = "inline-block";
+                document.getElementById("saveGifButton").style.display = "inline-block";
                 solutionPath = greedyBestFirstSearch(board.slice());
                 currentStep = 0;
             } else {
                 document.getElementById("solveButton").style.display = "none";
+                document.getElementById("saveGifButton").style.display = "none";
             }
         }
 
         function solveBoard() {
             if (currentStep < solutionPath.length) {
-                renderBoard(solutionPath[currentStep]);
+                renderBoard(solutionPath[currentStep], true);
                 currentStep++;
                 setTimeout(solveBoard, 500);
+            } else {
+                gif.render();
+            }
+        }
+
+        gif.on('finished', function(blob) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            document.body.appendChild(img);
+        });
+
+        function saveGif() {
+            if (solutionPath.length > 0) {
+                currentStep = 0;
+                renderBoard(solutionPath[currentStep], true);
+                solveBoard();
             }
         }
 
