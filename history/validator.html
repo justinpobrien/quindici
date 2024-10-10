@@ -119,6 +119,7 @@
         let solutionPath = [];
         let currentStep = 0;
         let isSolving = false; // Flag to prevent multiple solves
+        let initialBoard = []; // New variable to store the initial board
 
         /**
          * Renders the board state to the DOM and optionally adds a frame to the GIF.
@@ -222,6 +223,15 @@
         }
 
         /**
+         * Converts the board state array to a hexadecimal string.
+         * @param {Array} board - The board state array.
+         * @returns {string} - The hexadecimal representation of the board.
+         */
+        function boardToHex(board) {
+            return board.map(n => n.toString(16)).join('');
+        }
+
+        /**
          * Validates the input board and initializes the solving process if solvable.
          */
         function checkSolvability() {
@@ -253,6 +263,7 @@
 
             if (solvable) {
                 document.getElementById("solveButton").style.display = "inline-block";
+                initialBoard = board.slice(); // Store the initial board
                 // Run IDA* search asynchronously using a Web Worker
                 runIDAStarWorker(board.slice());
             } else {
@@ -360,7 +371,19 @@
                 // Configure the Download Button
                 downloadButton.style.display = 'inline-block'; // Make it visible
                 downloadButton.href = url;
-                downloadButton.download = '15-puzzle-solution.gif'; // Default filename
+                downloadButton.download = boardToHex(initialBoard) + '.gif'; // Set the filename
+                downloadButton.textContent = 'Download GIF';
+
+                // Add event listener to revoke the object URL after download
+                downloadButton.addEventListener('click', function() {
+                    setTimeout(() => {
+                        URL.revokeObjectURL(downloadButton.href);
+                        downloadButton.href = '#';
+                        downloadButton.download = '';
+                        downloadButton.style.display = 'none';
+                        downloadButton.textContent = 'Download GIF';
+                    }, 100); // Delay to ensure the download starts
+                });
 
                 // Re-enable the Solve button
                 solveButton.disabled = false;
