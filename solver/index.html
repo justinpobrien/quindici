@@ -139,6 +139,40 @@
         }
 
         /**
+         * Converts a hexadecimal string to the board state array.
+         * @param {string} hexString - The hexadecimal representation of the board.
+         * @returns {Array} - The board state array.
+         */
+        function hexToBoard(hexString) {
+            if (hexString.length !== 16) {
+                throw new Error("Invalid hexadecimal string length. It should be 16 characters long.");
+            }
+            return hexString.split('').map(char => {
+                const value = parseInt(char, 16);
+                if (isNaN(value)) {
+                    throw new Error("Invalid character in hexadecimal string.");
+                }
+                return value;
+            });
+        }
+
+        // On page load, check for the 'board' parameter in the URL
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const hexString = params.get('board');
+            if (hexString) {
+                try {
+                    const boardArray = hexToBoard(hexString);
+                    document.getElementById("boardInput").value = JSON.stringify(boardArray);
+                    checkSolvability();
+                } catch (error) {
+                    console.error("Error parsing board from URL:", error);
+                    alert("Invalid board parameter in URL.");
+                }
+            }
+        };
+
+        /**
          * Validates the input board and initializes the solving process if solvable.
          */
         function checkSolvability() {
