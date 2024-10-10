@@ -13,7 +13,7 @@
     <div class="input-container">
         <label for="boardInput">Enter the board state as a formatted array</label><br>
         <input type="text" id="boardInput" placeholder="[6, 1, 13, 2, 14, 15, 10, 3, 5, 8, 9, 4, 11, 0, 12, 7]">
-        <button onclick="checkSolvability()">Validate Board</button>
+        <button id="validateButton" onclick="checkSolvability()" disabled>Validate Board</button>
     </div>
     <div id="board" class="board"></div>
     <div id="result"></div>
@@ -168,6 +168,9 @@
                 } catch (error) {
                     console.error("Error parsing board from URL:", error);
                     alert("Invalid board parameter in URL.");
+                    // Re-enable the Validate button and input box in case they were disabled
+                    document.getElementById("validateButton").disabled = false;
+                    document.getElementById("boardInput").disabled = false;
                 }
             }
         };
@@ -175,12 +178,18 @@
         /**
          * Validates the input board and initializes the solving process if solvable.
          */
-        function checkSolvability() {
-            const boardInput = document.getElementById("boardInput").value;
+         function checkSolvability() {
+            const boardInput = document.getElementById("boardInput");
+            const validateButton = document.getElementById("validateButton");
+
+            // Disable the Validate button and input box
+            validateButton.disabled = true;
+            boardInput.disabled = true;
+
             let board;
 
             try {
-                board = JSON.parse(boardInput);
+                board = JSON.parse(boardInput.value);
                 if (!Array.isArray(board) || board.length !== 16) {
                     throw new Error();
                 }
@@ -192,6 +201,9 @@
                 document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 unique numbers including 0.";
                 document.getElementById("result").className = "";
                 document.getElementById("solveButton").style.display = "none";
+                // Re-enable the Validate button and input box
+                validateButton.disabled = false;
+                boardInput.disabled = false;
                 return;
             }
 
@@ -209,6 +221,9 @@
                 runIDAStarWorker(board.slice());
             } else {
                 document.getElementById("solveButton").style.display = "none";
+                // Re-enable the Validate button and input box
+                validateButton.disabled = false;
+                boardInput.disabled = false;
             }
         }
 
@@ -216,10 +231,10 @@
          * Initializes a Web Worker to run the IDA* Search algorithm asynchronously.
          * @param {Array} board - The initial board state.
          */
-        function runIDAStarWorker(board) {
-            // Disable the Validate button to prevent multiple runs
-            const validateButton = document.querySelector('button[onclick="checkSolvability()"]');
-            validateButton.disabled = true;
+         function runIDAStarWorker(board) {
+            const validateButton = document.getElementById("validateButton");
+            const boardInput = document.getElementById("boardInput");
+
             document.getElementById("result").textContent = "Solving...";
             solutionPath = [];
             currentStep = 0;
@@ -238,7 +253,9 @@
                     document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
                     document.getElementById("result").className = "solvable";
                 }
+                // Re-enable the Validate button and input box
                 validateButton.disabled = false;
+                boardInput.disabled = false;
                 worker.terminate();
             };
 
@@ -248,7 +265,9 @@
                 document.getElementById("result").textContent = "An error occurred during solving.";
                 document.getElementById("result").className = "unsolvable";
                 document.getElementById("solveButton").style.display = "none";
+                // Re-enable the Validate button and input box
                 validateButton.disabled = false;
+                boardInput.disabled = false;
                 worker.terminate();
             };
 
