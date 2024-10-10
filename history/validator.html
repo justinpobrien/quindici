@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board Validator</title>
-    <!-- Updated GIF.js CDN with correct worker script -->
+    <!-- GIF.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         body {
@@ -107,7 +107,6 @@
         const gif = new GIF({
             workers: 2,
             quality: 10,
-            // Updated workerScript to use CDN path
             workerScript: 'gif.worker.js'
         });
 
@@ -226,8 +225,12 @@
                 if (!Array.isArray(board) || board.length !== 16) {
                     throw new Error();
                 }
+                const uniqueSet = new Set(board);
+                if (uniqueSet.size !== 16 || !uniqueSet.has(0)) {
+                    throw new Error();
+                }
             } catch (error) {
-                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 numbers.";
+                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 unique numbers including 0.";
                 document.getElementById("result").className = "";
                 document.getElementById("solveButton").style.display = "none";
                 return;
@@ -242,8 +245,24 @@
 
             if (solvable) {
                 document.getElementById("solveButton").style.display = "inline-block";
-                solutionPath = greedyBestFirstSearch(board.slice());
-                currentStep = 0;
+                // Run A* search asynchronously using a Promise to prevent blocking the UI
+                aStarSearch(board.slice()).then(path => {
+                    solutionPath = path;
+                    currentStep = 0;
+                    if (solutionPath.length === 0) {
+                        document.getElementById("result").textContent = "No solution found.";
+                        document.getElementById("result").className = "unsolvable";
+                        document.getElementById("solveButton").style.display = "none";
+                    } else {
+                        document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
+                        document.getElementById("result").className = "solvable";
+                    }
+                }).catch(error => {
+                    console.error("A* Search Error:", error);
+                    document.getElementById("result").textContent = "An error occurred during solving.";
+                    document.getElementById("result").className = "unsolvable";
+                    document.getElementById("solveButton").style.display = "none";
+                });
             } else {
                 document.getElementById("solveButton").style.display = "none";
             }
@@ -267,10 +286,14 @@
                     // Initial state: highlight the first move
                     const currentState = solutionPath[step];
                     const nextState = solutionPath[step + 1];
-                    const highlightIndex = currentState.findIndex(
-                        (value, index) => value !== nextState[index] && value !== 0
-                    );
-                    renderBoard(currentState, true, highlightIndex);
+                    if (nextState) {
+                        const highlightIndex = currentState.findIndex(
+                            (value, index) => value !== nextState[index] && value !== 0
+                        );
+                        renderBoard(currentState, true, highlightIndex);
+                    } else {
+                        renderBoard(currentState, true);
+                    }
                 } else {
                     const previousState = solutionPath[step - 1];
                     const currentState = solutionPath[step];
@@ -316,41 +339,91 @@
         });
 
         /**
-         * Implements the Greedy Best-First Search algorithm to find the solution path.
+         * Implements the A* Search algorithm to find the solution path.
          * @param {Array} startState - The initial board state.
-         * @returns {Array} - The sequence of board states leading to the goal.
+         * @returns {Promise<Array>} - A promise that resolves to the sequence of board states leading to the goal.
          */
-        function greedyBestFirstSearch(startState) {
-            const openSet = [];
-            openSet.push({ state: startState, priority: manhattanDistance(startState) });
-            const cameFrom = new Map();
-            const closedSet = new Set();
+        function aStarSearch(startState) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const openSet = new MinHeap();
+                    const cameFrom = new Map();
+                    const gScore = new Map();
 
-            while (openSet.length > 0) {
-                // Sort openSet based on priority (ascending)
-                openSet.sort((a, b) => a.priority - b.priority);
-                const current = openSet.shift();
+                    const startKey = arrayToString(startState);
+                    const goal = goalState();
+                    const goalKey = arrayToString(goal);
 
-                if (arraysEqual(current.state, goalState())) {
-                    return reconstructPath(cameFrom, current.state);
-                }
+                    openSet.insert({
+                        state: startState,
+                        priority: manhattanDistance(startState),
+                        g: 0
+                    });
 
-                closedSet.add(arrayToString(current.state));
+                    gScore.set(startKey, 0);
 
-                const neighbors = getNeighbors(current.state);
-                for (const neighbor of neighbors) {
-                    const neighborString = arrayToString(neighbor);
-                    if (closedSet.has(neighborString)) {
-                        continue;
+                    const closedSet = new Set();
+
+                    let iterations = 0;
+                    const maxIterations = 1000000; // Prevent infinite loops
+
+                    while (!openSet.isEmpty() && iterations < maxIterations) {
+                        const current = openSet.extractMin();
+                        const currentKey = arrayToString(current.state);
+
+                        if (arraysEqual(current.state, goal)) {
+                            const path = reconstructPath(cameFrom, current.state);
+                            resolve(path);
+                            return;
+                        }
+
+                        closedSet.add(currentKey);
+
+                        const neighbors = getNeighbors(current.state);
+                        for (const neighbor of neighbors) {
+                            const neighborKey = arrayToString(neighbor);
+
+                            if (closedSet.has(neighborKey)) {
+                                continue;
+                            }
+
+                            const tentative_gScore = gScore.get(currentKey) + 1;
+
+                            if (!gScore.has(neighborKey) || tentative_gScore < gScore.get(neighborKey)) {
+                                cameFrom.set(neighborKey, current.state);
+                                gScore.set(neighborKey, tentative_gScore);
+                                const fScore = tentative_gScore + manhattanDistance(neighbor);
+
+                                const existingNode = openSet.find(node => arraysEqual(node.state, neighbor));
+                                if (existingNode) {
+                                    if (fScore < existingNode.priority) {
+                                        existingNode.priority = fScore;
+                                        existingNode.g = tentative_gScore;
+                                        openSet.update(existingNode);
+                                    }
+                                } else {
+                                    openSet.insert({
+                                        state: neighbor,
+                                        priority: fScore,
+                                        g: tentative_gScore
+                                    });
+                                }
+                            }
+                        }
+
+                        iterations++;
+                        if (iterations >= maxIterations) {
+                            console.warn("A* Search exceeded maximum iterations.");
+                            break;
+                        }
                     }
-                    if (!openSet.some(item => arraysEqual(item.state, neighbor))) {
-                        openSet.push({ state: neighbor, priority: manhattanDistance(neighbor) });
-                        cameFrom.set(neighborString, current.state);
-                    }
-                }
-            }
 
-            return [];
+                    // If no solution found
+                    resolve([]);
+                } catch (error) {
+                    reject(error);
+                }
+            });
         }
 
         /**
@@ -361,11 +434,12 @@
          */
         function reconstructPath(cameFrom, current) {
             const path = [current];
-            while (cameFrom.has(arrayToString(current))) {
-                current = cameFrom.get(arrayToString(current));
+            let currentKey = arrayToString(current);
+            while (cameFrom.has(currentKey)) {
+                current = cameFrom.get(currentKey);
+                currentKey = arrayToString(current);
                 path.unshift(current);
             }
-            // Removed slice(1) to include the initial state
             return path;
         }
 
@@ -447,6 +521,77 @@
          */
         function goalState() {
             return Array.from({ length: 15 }, (_, i) => i + 1).concat(0);
+        }
+
+        /**
+         * Implements a MinHeap data structure for the priority queue.
+         */
+        class MinHeap {
+            constructor() {
+                this.heap = [];
+            }
+
+            insert(node) {
+                this.heap.push(node);
+                this.bubbleUp(this.heap.length - 1);
+            }
+
+            extractMin() {
+                if (this.heap.length === 0) return null;
+                if (this.heap.length === 1) return this.heap.pop();
+                const min = this.heap[0];
+                this.heap[0] = this.heap.pop();
+                this.bubbleDown(0);
+                return min;
+            }
+
+            isEmpty() {
+                return this.heap.length === 0;
+            }
+
+            bubbleUp(index) {
+                while (index > 0) {
+                    const parentIndex = Math.floor((index - 1) / 2);
+                    if (this.heap[parentIndex].priority <= this.heap[index].priority) break;
+                    [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
+                    index = parentIndex;
+                }
+            }
+
+            bubbleDown(index) {
+                const length = this.heap.length;
+                while (true) {
+                    let smallest = index;
+                    const left = 2 * index + 1;
+                    const right = 2 * index + 2;
+
+                    if (left < length && this.heap[left].priority < this.heap[smallest].priority) {
+                        smallest = left;
+                    }
+
+                    if (right < length && this.heap[right].priority < this.heap[smallest].priority) {
+                        smallest = right;
+                    }
+
+                    if (smallest === index) break;
+
+                    [this.heap[smallest], this.heap[index]] = [this.heap[index], this.heap[smallest]];
+                    index = smallest;
+                }
+            }
+
+            find(predicate) {
+                return this.heap.find(predicate);
+            }
+
+            update(node) {
+                const index = this.heap.findIndex(n => arraysEqual(n.state, node.state));
+                if (index !== -1) {
+                    this.heap[index] = node;
+                    this.bubbleUp(index);
+                    this.bubbleDown(index);
+                }
+            }
         }
     </script>
 </body>
