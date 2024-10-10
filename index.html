@@ -16,9 +16,14 @@
         </div>
         <button onclick="newGame()">New Game</button>
         <button onclick="solveStep()" id="solveButton">Solve Step</button>
-        
+        <div>
+            <p>Crafted by AI with a little human touch.</p>
+            <p>Need a hand? Check out the <a href="#" id="solverLink" target="_blank">15-Puzzle Solver</a></p>
+            <p>This project is open source. Check out the <a href="https://github.com/justinpobrien/quindici/" target="_blank">repo</a></p>
+            <p>Found a bug? Submit an <a href="https://github.com/justinpobrien/quindici/issues" target="_blank">issue</a></p>
+        </div>
     </div>
-
+   
     <script>
         let size = 4;
         let board = [];
@@ -75,6 +80,26 @@
             }
         }
 
+
+        // Add the boardToHex function
+        /**
+         * Converts the board state array to a hexadecimal string.
+         * @param {Array} board - The board state array.
+         * @returns {string} - The hexadecimal representation of the board.
+         */
+         function boardToHex(board) {
+            return board.map(n => n.toString(16)).join('');
+        }
+
+        // Add the updateFooterLinks function
+        function updateFooterLinks() {
+            const solverLink = document.getElementById('solverLink');
+            if (solverLink) {
+                const hexBoard = boardToHex(board);
+                solverLink.href = '/solver/?board=' + hexBoard;
+            }
+        }
+
         function renderBoard() {
             const boardElement = document.getElementById('board');
             const tilesElement = document.getElementById('tiles');
@@ -99,6 +124,8 @@
                 }
                 tilesElement.appendChild(tile); // Append tiles to tilesElement
             }
+
+            updateFooterLinks();
         }
 
         function isGameWon() {
@@ -252,6 +279,8 @@
         }
 
         newGame();
+        updateFooterLinks();
     </script>
+ 
 </body>
 </html>
