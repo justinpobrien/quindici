@@ -215,7 +215,7 @@
             resultDiv.className = solvable ? "solvable" : "unsolvable";
 
             if (solvable) {
-                document.getElementById("solveButton").style.display = "inline-block";
+                // document.getElementById("solveButton").style.display = "inline-block";
                 initialBoard = board.slice(); // Store the initial board
                 // Run IDA* search asynchronously using a Web Worker
                 runIDAStarWorker(board.slice());
@@ -239,6 +239,9 @@
             solutionPath = [];
             currentStep = 0;
 
+            // Hide the Solve button until the solution is found
+            document.getElementById("solveButton").style.display = "none";
+
             // Create a new Web Worker
             const worker = new Worker('solverWorker.js');
 
@@ -252,6 +255,7 @@
                 } else {
                     document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
                     document.getElementById("result").className = "solvable";
+                    document.getElementById("solveButton").style.display = "inline-block";
                 }
                 // Re-enable the Validate button and input box
                 validateButton.disabled = false;
