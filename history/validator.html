@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board Validator</title>
+    <!-- Updated GIF.js CDN with correct worker script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <style>
         body {
@@ -106,9 +107,16 @@
         const gif = new GIF({
             workers: 2,
             quality: 10,
+            // Updated workerScript to use CDN path
             workerScript: 'gif.worker.js'
         });
 
+        /**
+         * Renders the board state to the DOM and optionally adds a frame to the GIF.
+         * @param {Array} board - The current board state.
+         * @param {boolean} isGifFrame - Whether to capture this render as a GIF frame.
+         * @param {number} highlightIndex - The index of the tile to highlight.
+         */
         function renderBoard(board, isGifFrame = false, highlightIndex = -1) {
             const boardDiv = document.getElementById("board");
             boardDiv.innerHTML = "";
@@ -134,6 +142,11 @@
             }
         }
 
+        /**
+         * Renders the board state to a hidden canvas for GIF creation.
+         * @param {Array} board - The current board state.
+         * @param {number} highlightIndex - The index of the tile to highlight.
+         */
         function renderToCanvas(board, highlightIndex = -1) {
             const canvas = document.getElementById("boardCanvas");
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -169,6 +182,11 @@
             });
         }
 
+        /**
+         * Determines if a given board state is solvable.
+         * @param {Array} board - The board state to check.
+         * @returns {boolean} - True if solvable, false otherwise.
+         */
         function isSolvable(board) {
             const size = 4;
             let inversionCount = 0;
@@ -196,6 +214,9 @@
             }
         }
 
+        /**
+         * Validates the input board and initializes the solving process if solvable.
+         */
         function checkSolvability() {
             const boardInput = document.getElementById("boardInput").value;
             let board;
@@ -228,38 +249,77 @@
             }
         }
 
-        function solveBoard() {
-            if (currentStep === 0) {
-                renderBoard(solutionPath[currentStep], true);
-                currentStep++;
-                setTimeout(solveBoard, 500);
+        /**
+         * Animates the solving process by iterating through the solution path.
+         */
+        async function solveBoard() {
+            if (solutionPath.length === 0) {
+                alert("No solution path available.");
                 return;
             }
 
-            if (currentStep < solutionPath.length) {
-                const previousState = solutionPath[currentStep - 1];
-                const currentState = solutionPath[currentStep];
-                let highlightIndex = previousState.findIndex((value, index) => value !== currentState[index] && value !== 0);
+            // Clear previous GIF frames
+            gif.frames = [];
+            document.getElementById('gifContainer').innerHTML = '';
 
-                renderBoard(previousState, true, highlightIndex); // Highlight the tile before it is moved
-                setTimeout(() => {
+            for (let step = 0; step < solutionPath.length; step++) {
+                if (step === 0) {
+                    // Initial state: highlight the first move
+                    const currentState = solutionPath[step];
+                    const nextState = solutionPath[step + 1];
+                    const highlightIndex = currentState.findIndex(
+                        (value, index) => value !== nextState[index] && value !== 0
+                    );
+                    renderBoard(currentState, true, highlightIndex);
+                } else {
+                    const previousState = solutionPath[step - 1];
+                    const currentState = solutionPath[step];
+                    const highlightIndex = previousState.findIndex(
+                        (value, index) => value !== currentState[index] && value !== 0
+                    );
+
+                    // Highlight the tile before it is moved
+                    renderBoard(previousState, true, highlightIndex);
+                    await delay(500); // Wait for 0.5 seconds
+
+                    // Render the new state without highlighting
                     renderBoard(currentState, true);
-                    currentStep++;
-                    setTimeout(solveBoard, 500);
-                }, 500);
-            } else {
-                gif.render();
+                }
+
+                await delay(500); // Wait for 0.5 seconds before next step
             }
+
+            // After all steps, render the GIF
+            gif.render();
         }
 
+        /**
+         * Creates a delay for asynchronous operations.
+         * @param {number} ms - The delay duration in milliseconds.
+         * @returns {Promise} - A promise that resolves after the specified delay.
+         */
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        /**
+         * Handles the completion of GIF rendering by displaying the GIF.
+         */
         gif.on('finished', function(blob) {
             const img = document.createElement('img');
             img.src = URL.createObjectURL(blob);
+            img.alt = "Solution GIF";
+            img.style.marginTop = "20px";
             const gifContainer = document.getElementById('gifContainer');
             gifContainer.innerHTML = '';
             gifContainer.appendChild(img);
         });
 
+        /**
+         * Implements the Greedy Best-First Search algorithm to find the solution path.
+         * @param {Array} startState - The initial board state.
+         * @returns {Array} - The sequence of board states leading to the goal.
+         */
         function greedyBestFirstSearch(startState) {
             const openSet = [];
             openSet.push({ state: startState, priority: manhattanDistance(startState) });
@@ -267,6 +327,7 @@
             const closedSet = new Set();
 
             while (openSet.length > 0) {
+                // Sort openSet based on priority (ascending)
                 openSet.sort((a, b) => a.priority - b.priority);
                 const current = openSet.shift();
 
@@ -292,15 +353,27 @@
             return [];
         }
 
+        /**
+         * Reconstructs the path from the goal state back to the initial state.
+         * @param {Map} cameFrom - A map tracking the path.
+         * @param {Array} current - The current state.
+         * @returns {Array} - The solution path from initial to goal state.
+         */
         function reconstructPath(cameFrom, current) {
             const path = [current];
             while (cameFrom.has(arrayToString(current))) {
                 current = cameFrom.get(arrayToString(current));
                 path.unshift(current);
             }
-            return path.slice(1);
+            // Removed slice(1) to include the initial state
+            return path;
         }
 
+        /**
+         * Generates all possible neighboring states from the current state.
+         * @param {Array} state - The current board state.
+         * @returns {Array} - An array of neighboring board states.
+         */
         function getNeighbors(state) {
             const neighbors = [];
             const emptyIndex = state.indexOf(0);
@@ -308,10 +381,10 @@
             const col = emptyIndex % 4;
 
             const directions = [
-                { rowOffset: -1, colOffset: 0 },
-                { rowOffset: 1, colOffset: 0 },
-                { rowOffset: 0, colOffset: -1 },
-                { rowOffset: 0, colOffset: 1 }
+                { rowOffset: -1, colOffset: 0 }, // Up
+                { rowOffset: 1, colOffset: 0 },  // Down
+                { rowOffset: 0, colOffset: -1 }, // Left
+                { rowOffset: 0, colOffset: 1 }   // Right
             ];
 
             for (const { rowOffset, colOffset } of directions) {
@@ -320,6 +393,7 @@
                 if (newRow >= 0 && newRow < 4 && newCol >= 0 && newCol < 4) {
                     const newIndex = newRow * 4 + newCol;
                     const newState = state.slice();
+                    // Swap the empty tile with the adjacent tile
                     [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
                     neighbors.push(newState);
                 }
@@ -328,6 +402,11 @@
             return neighbors;
         }
 
+        /**
+         * Calculates the Manhattan Distance heuristic for a given board state.
+         * @param {Array} state - The current board state.
+         * @returns {number} - The total Manhattan Distance.
+         */
         function manhattanDistance(state) {
             let distance = 0;
             for (let i = 0; i < state.length; i++) {
@@ -343,14 +422,29 @@
             return distance;
         }
 
+        /**
+         * Checks if two arrays are equal.
+         * @param {Array} a - The first array.
+         * @param {Array} b - The second array.
+         * @returns {boolean} - True if equal, false otherwise.
+         */
         function arraysEqual(a, b) {
             return a.length === b.length && a.every((val, index) => val === b[index]);
         }
 
+        /**
+         * Converts an array to a comma-separated string.
+         * @param {Array} array - The array to convert.
+         * @returns {string} - The resulting string.
+         */
         function arrayToString(array) {
             return array.join(',');
         }
 
+        /**
+         * Defines the goal state for the 15-puzzle.
+         * @returns {Array} - The goal board state.
+         */
         function goalState() {
             return Array.from({ length: 15 }, (_, i) => i + 1).concat(0);
         }
