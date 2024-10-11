@@ -1,8 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600&display=swap');
 
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Light.eot");
+    src: url("fonts/ClearSans-Light.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Light.svg#clear_sans_lightregular") format("svg"),
+         url("fonts/ClearSans-Light.woff") format("woff");
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Regular.eot");
+    src: url("fonts/ClearSans-Regular.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Regular.svg#clear_sansregular") format("svg"),
+         url("fonts/ClearSans-Regular.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Bold.eot");
+    src: url("fonts/ClearSans-Bold.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Bold.svg#clear_sansbold") format("svg"),
+         url("fonts/ClearSans-Bold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+}
+
+
+
 /* General body styles */
 body {
-    font-family: "Fira Sans", sans-serif;
+    font-family: "Clear Sans", sans-serif;
     font-weight: 600;
     font-style: normal;
     display: flex;
@@ -16,6 +48,15 @@ body {
 /* Header styles */
 h1 {
     color: #776e65;
+    margin-bottom: 5px;
+}
+
+h3 {
+    font-family: "Clear Sans", sans-serif;
+    font-weight: 200;
+    margin-top: 0px;
+    color: #000;
+    opacity: 0.5;
 }
 
 .overlay {
@@ -69,8 +110,6 @@ h1 {
     align-items: center;
     border-radius: 10px;
     box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
-    /* transition: background-color 0.3s ease, color 0.3s ease; */
-    /* transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease; */
     transition: background-color 0.3s ease 0s, color 0.3s ease 0s, transform 0.3s ease 1s;
 
 }
@@ -117,7 +156,7 @@ button:disabled {
 
 
 .footer p {
-    font-family: 'Arial', sans-serif;
+    font-family: "Clear Sans", sans-serif;
     font-weight: normal;
     color: #333;
     margin: 0  auto;
