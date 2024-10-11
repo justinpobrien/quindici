@@ -400,19 +400,19 @@
 
             switch(event.key) {
                 case 'ArrowUp':
-                    rowOffset = -1;
+                    rowOffset = 1; // Move tile below into empty space
                     event.preventDefault();
                     break;
                 case 'ArrowDown':
-                    rowOffset = 1;
+                    rowOffset = -1; // Move tile above into empty space
                     event.preventDefault();
                     break;
                 case 'ArrowLeft':
-                    colOffset = -1;
+                    colOffset = 1; // Move tile to the right into empty space
                     event.preventDefault();
                     break;
                 case 'ArrowRight':
-                    colOffset = 1;
+                    colOffset = -1; // Move tile to the left into empty space
                     event.preventDefault();
                     break;
                 case 'a':
@@ -433,13 +433,12 @@
                     openSolverLink();
                     event.preventDefault();
                     return;
-                // Removed 'x' case from here as it's handled above
                 default:
                     return; // Do nothing for other keys
             }
 
             if ((rowOffset !== 0 || colOffset !== 0) && event.shiftKey) {
-                // Move empty space as far as possible in the direction
+                // Move tiles into empty space as far as possible in the direction
                 while (true) {
                     let newRow = targetRow + rowOffset;
                     let newCol = targetCol + colOffset;
@@ -456,7 +455,7 @@
                     targetCol = newCol;
                 }
             } else if (rowOffset !== 0 || colOffset !== 0) {
-                // Move empty space one position in the direction
+                // Move tile into empty space if possible
                 let newRow = targetRow + rowOffset;
                 let newCol = targetCol + colOffset;
 
