@@ -386,11 +386,29 @@
                     colOffset = 1;
                     event.preventDefault();
                     break;
+                case 'a':
+                case 'A':
+                    // New game
+                    newGame();
+                    event.preventDefault();
+                    return;
+                case 's':
+                case 'S':
+                    // Solve step
+                    solveStep();
+                    event.preventDefault();
+                    return;
+                case 'f':
+                case 'F':
+                    // Open solver link
+                    openSolverLink();
+                    event.preventDefault();
+                    return;
                 default:
                     return; // Do nothing for other keys
             }
 
-            if (event.shiftKey) {
+            if ((rowOffset !== 0 || colOffset !== 0) && event.shiftKey) {
                 // Move empty space as far as possible in the direction
                 while (true) {
                     let newRow = targetRow + rowOffset;
@@ -407,7 +425,7 @@
                     targetRow = newRow;
                     targetCol = newCol;
                 }
-            } else {
+            } else if (rowOffset !== 0 || colOffset !== 0) {
                 // Move empty space one position in the direction
                 let newRow = targetRow + rowOffset;
                 let newCol = targetCol + colOffset;
@@ -419,6 +437,9 @@
                 let newIndex = newRow * size + newCol;
                 // Swap tiles
                 [board[emptyIndex], board[newIndex]] = [board[newIndex], board[emptyIndex]];
+            } else {
+                // Other keys are handled above
+                return;
             }
 
             renderBoard();
@@ -441,6 +462,13 @@
                     overlayElement.style.pointerEvents = 'auto';
                 }
                 document.getElementById('solveButton').disabled = true;
+            }
+        }
+
+        function openSolverLink() {
+            const solverLink = document.getElementById('solverLink');
+            if (solverLink) {
+                window.open(solverLink.href, '_blank');
             }
         }
 
