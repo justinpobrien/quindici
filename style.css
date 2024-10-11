@@ -43,7 +43,7 @@ h1 {
 /* Board styles */
 .board {
     position: relative; /* Ensure overlay positions correctly */
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     background-color: #B9AEA1;
     padding: 20px;
     border-radius: 10px;
@@ -139,4 +139,16 @@ button:disabled {
 
 .footer p {
     line-height: 1.5;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.move-counter, .timer {
+    font-size: 16px;
+    font-weight: bold;
 }

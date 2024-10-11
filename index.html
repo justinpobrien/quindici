@@ -22,8 +22,17 @@
             <div id="tiles"></div>
             <div id="overlay" class="overlay">Game Over</div>
         </div>
+
+        <div class="status-bar">
+            <div class="move-counter"><span id="moveCounter">0</span> moves</div>
+            <div class="timer"><span id="timer">0:00</span></div>
+        </div>
+
         <button onclick="newGame()">New Game</button>
         <button onclick="solveStep()" id="solveButton">Solve Step</button>
+
+
+
         <div class="footer">
             <p><b>Crafted by AI</b> with a little human touch.</p>
             <p><b>Need a hand?</b> Check out the <a href="#" id="solverLink" target="_blank">15-Puzzle Solver</a></p>
@@ -38,6 +47,12 @@
         let gameWon = false;
         let solutionPath = [];
         const goalState = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
+
+        // Variables for move counter and timer
+        let moveCount = 0;
+        let timerInterval = null;
+        let startTime = null;
+
 
         function newGame() {
             board = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
@@ -54,6 +69,14 @@
                 overlayElement.style.visibility = 'hidden'; 
                 overlayElement.style.pointerEvents = 'none'; // Reset pointer events
             }
+
+            // Reset move counter and timer
+            moveCount = 0;
+            updateMoveCounter();
+            clearInterval(timerInterval);
+            timerInterval = null;
+            startTime = null;
+            updateTimerDisplay(0);
         }
 
         function shuffleBoard() {
@@ -162,9 +185,21 @@
                 board[row * size + emptyCol] = 0;
             }
             renderBoard();
+
+            // Add counter
+            moveCount++;
+            updateMoveCounter();
+
+            // Add timer
+            if (!timerInterval) {
+                startTimer();
+            }
+
+
             if (isGameWon()) {
                 gameWon = true;
                 renderBoard();
+                stopTimer(); // Stop Timer
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
                     overlayElement.style.visibility = 'visible';
@@ -176,15 +211,22 @@
 
         function solveStep() {
             if (gameWon) return;
+
             if (solutionPath.length === 0) {
                 solutionPath = greedyBestFirstSearch(board.slice());
             }
             if (solutionPath.length > 0) {
                 board = solutionPath.shift();
                 renderBoard();
+
+                // Add counter
+                moveCount++;
+                updateMoveCounter();
+
                 if (isGameWon()) {
                     gameWon = true;
                     renderBoard();
+                    stopTimer(); // Stop Timer
                     const overlayElement = document.getElementById('overlay');
                     if (overlayElement) {
                         overlayElement.style.visibility = 'visible';
@@ -193,6 +235,30 @@
                     document.getElementById('solveButton').disabled = true;
                 }
             }
+        }
+
+        // Functions to handle move counter and timer
+        function updateMoveCounter() {
+            document.getElementById('moveCounter').textContent = moveCount;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(function() {
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                updateTimerDisplay(elapsedTime);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function updateTimerDisplay(seconds) {
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
         }
 
         function greedyBestFirstSearch(startState) {
