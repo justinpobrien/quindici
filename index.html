@@ -47,6 +47,7 @@
         let size = 4;
         let board = [];
         let gameWon = false;
+        let gamePaused = false; // New variable to track pause state
         let solutionPath = [];
         const goalState = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
 
@@ -54,7 +55,7 @@
         let moveCount = 0;
         let timerInterval = null;
         let startTime = null;
-
+        let elapsedTime = 0; // Modified to keep track of elapsed time
 
         function newGame() {
             board = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
@@ -63,13 +64,15 @@
                 shuffleBoard();
             }
             gameWon = false;
+            gamePaused = false; // Reset pause state
             solutionPath = [];
             renderBoard();
             document.getElementById('solveButton').disabled = false;
             const overlayElement = document.getElementById('overlay'); 
             if (overlayElement) { 
+                overlayElement.textContent = 'Game Over'; // Reset overlay text
                 overlayElement.style.visibility = 'hidden'; 
-                overlayElement.style.pointerEvents = 'none'; // Reset pointer events
+                overlayElement.style.pointerEvents = 'none';
             }
 
             // Reset move counter and timer
@@ -78,6 +81,7 @@
             clearInterval(timerInterval);
             timerInterval = null;
             startTime = null;
+            elapsedTime = 0; // Reset elapsed time
             updateTimerDisplay(0);
         }
 
@@ -166,7 +170,7 @@
         }
 
         function moveTile(index) {
-            if (gameWon) return;
+            if (gameWon || gamePaused) return; // Added gamePaused check
             const emptyIndex = board.indexOf(0);
             const row = Math.floor(index / size);
             const col = index % size;
@@ -212,7 +216,7 @@
         }
 
         function solveStep() {
-            if (gameWon) return;
+            if (gameWon || gamePaused) return; // Added gamePaused check
 
             if (solutionPath.length === 0) {
                 solutionPath = greedyBestFirstSearch(board.slice());
@@ -245,21 +249,37 @@
         }
 
         function startTimer() {
+            if (timerInterval) return; // Timer already running
             startTime = Date.now();
             timerInterval = setInterval(function() {
-                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-                updateTimerDisplay(elapsedTime);
+                let currentTime = Date.now();
+                elapsedTime += (currentTime - startTime) / 1000;
+                startTime = currentTime;
+                updateTimerDisplay(Math.floor(elapsedTime));
             }, 1000);
         }
 
-        function stopTimer() {
+        function pauseTimer() {
+            if (!timerInterval) return; // Timer not running
             clearInterval(timerInterval);
             timerInterval = null;
+            let currentTime = Date.now();
+            elapsedTime += (currentTime - startTime) / 1000;
+            startTime = null;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            elapsedTime = 0;
+            startTime = null;
         }
 
         function updateTimerDisplay(seconds) {
             let mins = Math.floor(seconds / 60);
-            let secs = seconds % 60;
+            let secs = Math.floor(seconds % 60);
             document.getElementById('timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
         }
 
@@ -359,6 +379,15 @@
         function handleKeydown(event) {
             if (gameWon) return;
 
+            // Handle pause/unpause regardless of gamePaused state
+            if (event.key === 'x' || event.key === 'X') {
+                togglePauseGame();
+                event.preventDefault();
+                return;
+            }
+
+            if (gamePaused) return; // Do not process other keys when game is paused
+
             let emptyIndex = board.indexOf(0);
             let row = Math.floor(emptyIndex / size);
             let col = emptyIndex % size;
@@ -404,6 +433,7 @@
                     openSolverLink();
                     event.preventDefault();
                     return;
+                // Removed 'x' case from here as it's handled above
                 default:
                     return; // Do nothing for other keys
             }
@@ -458,10 +488,35 @@
                 stopTimer();
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
+                    overlayElement.textContent = 'Game Over'; // Set overlay text
                     overlayElement.style.visibility = 'visible';
                     overlayElement.style.pointerEvents = 'auto';
                 }
                 document.getElementById('solveButton').disabled = true;
+            }
+        }
+
+        function togglePauseGame() {
+            const overlayElement = document.getElementById('overlay');
+            if (gamePaused) {
+                // Unpause the game
+                gamePaused = false;
+                if (overlayElement) {
+                    overlayElement.style.visibility = 'hidden';
+                    overlayElement.style.pointerEvents = 'none';
+                }
+                // Resume the timer
+                startTimer();
+            } else {
+                // Pause the game
+                gamePaused = true;
+                if (overlayElement) {
+                    overlayElement.textContent = 'Game Paused';
+                    overlayElement.style.visibility = 'visible';
+                    overlayElement.style.pointerEvents = 'auto';
+                }
+                // Pause the timer
+                pauseTimer();
             }
         }
 
