@@ -365,51 +365,61 @@
             let targetRow = row;
             let targetCol = col;
 
+            // Determine movement direction
+            let rowOffset = 0;
+            let colOffset = 0;
+
             switch(event.key) {
                 case 'ArrowUp':
-                    // Shift tile up into empty space
-                    if (row < size - 1) {
-                        targetRow = row + 1;
-                        event.preventDefault();
-                    } else {
-                        return; // Can't move
-                    }
+                    rowOffset = -1;
+                    event.preventDefault();
                     break;
                 case 'ArrowDown':
-                    // Shift tile down into empty space
-                    if (row > 0) {
-                        targetRow = row - 1;
-                        event.preventDefault();
-                    } else {
-                        return; // Can't move
-                    }
+                    rowOffset = 1;
+                    event.preventDefault();
                     break;
                 case 'ArrowLeft':
-                    // Shift tile left into empty space
-                    if (col < size - 1) {
-                        targetCol = col + 1;
-                        event.preventDefault();
-                    } else {
-                        return; // Can't move
-                    }
+                    colOffset = -1;
+                    event.preventDefault();
                     break;
                 case 'ArrowRight':
-                    // Shift tile right into empty space
-                    if (col > 0) {
-                        targetCol = col - 1;
-                        event.preventDefault();
-                    } else {
-                        return; // Can't move
-                    }
+                    colOffset = 1;
+                    event.preventDefault();
                     break;
                 default:
                     return; // Do nothing for other keys
             }
 
-            let targetIndex = targetRow * size + targetCol;
+            if (event.shiftKey) {
+                // Move empty space as far as possible in the direction
+                while (true) {
+                    let newRow = targetRow + rowOffset;
+                    let newCol = targetCol + colOffset;
 
-            // Move the tile at targetIndex into the empty space
-            [board[emptyIndex], board[targetIndex]] = [board[targetIndex], board[emptyIndex]];
+                    if (newRow < 0 || newRow >= size || newCol < 0 || newCol >= size) {
+                        break; // Reached the edge of the board
+                    }
+
+                    let newIndex = newRow * size + newCol;
+                    // Swap tiles
+                    [board[emptyIndex], board[newIndex]] = [board[newIndex], board[emptyIndex]];
+                    emptyIndex = newIndex;
+                    targetRow = newRow;
+                    targetCol = newCol;
+                }
+            } else {
+                // Move empty space one position in the direction
+                let newRow = targetRow + rowOffset;
+                let newCol = targetCol + colOffset;
+
+                if (newRow < 0 || newRow >= size || newCol < 0 || newCol >= size) {
+                    return; // Can't move outside the board
+                }
+
+                let newIndex = newRow * size + newCol;
+                // Swap tiles
+                [board[emptyIndex], board[newIndex]] = [board[newIndex], board[emptyIndex]];
+            }
 
             renderBoard();
 
