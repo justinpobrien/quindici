@@ -70,7 +70,7 @@ h2 {
     height: 100%;
     /* Remove pointer-events: none; */
     background: rgba(0, 0, 0, 0.7);
-    color: #D3A15A;
+    color: #99EA7B;
     display: flex; /* Hide the overlay by default */
     justify-content: center;
     align-items: center;

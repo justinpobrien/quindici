@@ -22,7 +22,7 @@
         <h2>The Classic 15-Puzzle Built by AI</h2>
         <div class="board" id="board">
             <div id="tiles"></div>
-            <div id="overlay" class="game-over-overlay">Game Over</div>
+            <div id="overlay" class="game-over-overlay">You Won!</div>
 
             <!-- Keyboard Shortcuts Overlay -->
             <div id="shortcutOverlay" class="shortcut-overlay style="display: none;">
@@ -524,7 +524,8 @@
                 stopTimer();
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
-                    overlayElement.textContent = 'Game Over'; // Set overlay text
+                    overlayElement.textContent = 'You Won!'; // Set overlay text
+                    overlayElement.style.color = '#99EA7B'; // Set color
                     overlayElement.style.display = 'flex'; // TK: Attempt Fix
                     // overlayElement.style.visibility = 'visible';
                     // overlayElement.style.pointerEvents = 'auto';
@@ -563,7 +564,8 @@
                 gamePaused = false;
                 if (overlayElement) {
                     overlayElement.style.display = 'none';
-                    overlayElement.textContent = 'Game Over';
+                    overlayElement.style.color = '#99EA7B'; // Set color
+                    overlayElement.textContent = 'You Won!';
                 }
                 // Resume the timer
                 startTimer();
@@ -572,6 +574,7 @@
                 gamePaused = true;
                 if (overlayElement) {
                     overlayElement.textContent = 'Game Paused';
+                    overlayElement.style.color = '#D3A15A'; // Set color
                     overlayElement.style.display = 'flex';
                 }
                 // Pause the timer
