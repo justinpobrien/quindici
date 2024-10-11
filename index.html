@@ -22,7 +22,7 @@
         <h2>The Classic 15-Puzzle Built by AI</h2>
         <div class="board" id="board">
             <div id="tiles"></div>
-            <div id="overlay" class="game-over-overlay" style="display: none;">Game Over</div>
+            <div id="overlay" class="game-over-overlay">Game Over</div>
 
             <!-- Keyboard Shortcuts Overlay -->
             <div id="shortcutOverlay" class="shortcut-overlay style="display: none;">
@@ -92,8 +92,9 @@
             const overlayElement = document.getElementById('overlay'); 
             if (overlayElement) { 
                 overlayElement.textContent = 'Game Over'; // Reset overlay text
-                overlayElement.style.visibility = 'hidden'; 
-                overlayElement.style.pointerEvents = 'none';
+                overlayElement.style.display = 'none'; // TK: Attempt Fix
+                // overlayElement.style.visibility = 'hidden'; 
+                // overlayElement.style.pointerEvents = 'none';
             }
 
             // Reset move counter and timer
@@ -229,8 +230,9 @@
                 stopTimer(); // Stop Timer
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
-                    overlayElement.style.visibility = 'visible';
-                    overlayElement.style.pointerEvents = 'auto'; // Added line
+                    overlayElement.style.display = 'flex'; // TK: Attempt Fix
+                    // overlayElement.style.visibility = 'visible';
+                    // overlayElement.style.pointerEvents = 'auto'; // Added line
                 }
                 document.getElementById('solveButton').disabled = true;
             }
@@ -256,8 +258,9 @@
                     stopTimer(); // Stop Timer
                     const overlayElement = document.getElementById('overlay');
                     if (overlayElement) {
-                        overlayElement.style.visibility = 'visible';
-                        overlayElement.style.pointerEvents = 'auto'; // Added line
+                        overlayElement.style.display = 'flex'; // TK: Attempt Fix
+                        // overlayElement.style.visibility = 'visible';
+                        // overlayElement.style.pointerEvents = 'auto'; // Added line
                     }
                     document.getElementById('solveButton').disabled = true;
                 }
@@ -522,8 +525,9 @@
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
                     overlayElement.textContent = 'Game Over'; // Set overlay text
-                    overlayElement.style.visibility = 'visible';
-                    overlayElement.style.pointerEvents = 'auto';
+                    overlayElement.style.display = 'flex'; // TK: Attempt Fix
+                    // overlayElement.style.visibility = 'visible';
+                    // overlayElement.style.pointerEvents = 'auto';
                 }
                 document.getElementById('solveButton').disabled = true;
             }
@@ -559,6 +563,7 @@
                 gamePaused = false;
                 if (overlayElement) {
                     overlayElement.style.display = 'none';
+                    overlayElement.textContent = 'Game Over';
                 }
                 // Resume the timer
                 startTimer();
