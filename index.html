@@ -354,6 +354,86 @@
             return array.join(',');
         }
 
+        document.addEventListener('keydown', handleKeydown);
+
+        function handleKeydown(event) {
+            if (gameWon) return;
+
+            let emptyIndex = board.indexOf(0);
+            let row = Math.floor(emptyIndex / size);
+            let col = emptyIndex % size;
+            let targetRow = row;
+            let targetCol = col;
+
+            switch(event.key) {
+                case 'ArrowUp':
+                    // Shift tile up into empty space
+                    if (row < size - 1) {
+                        targetRow = row + 1;
+                        event.preventDefault();
+                    } else {
+                        return; // Can't move
+                    }
+                    break;
+                case 'ArrowDown':
+                    // Shift tile down into empty space
+                    if (row > 0) {
+                        targetRow = row - 1;
+                        event.preventDefault();
+                    } else {
+                        return; // Can't move
+                    }
+                    break;
+                case 'ArrowLeft':
+                    // Shift tile left into empty space
+                    if (col < size - 1) {
+                        targetCol = col + 1;
+                        event.preventDefault();
+                    } else {
+                        return; // Can't move
+                    }
+                    break;
+                case 'ArrowRight':
+                    // Shift tile right into empty space
+                    if (col > 0) {
+                        targetCol = col - 1;
+                        event.preventDefault();
+                    } else {
+                        return; // Can't move
+                    }
+                    break;
+                default:
+                    return; // Do nothing for other keys
+            }
+
+            let targetIndex = targetRow * size + targetCol;
+
+            // Move the tile at targetIndex into the empty space
+            [board[emptyIndex], board[targetIndex]] = [board[targetIndex], board[emptyIndex]];
+
+            renderBoard();
+
+            // Update move counter and timer
+            moveCount++;
+            updateMoveCounter();
+
+            if (!timerInterval) {
+                startTimer();
+            }
+
+            if (isGameWon()) {
+                gameWon = true;
+                renderBoard();
+                stopTimer();
+                const overlayElement = document.getElementById('overlay');
+                if (overlayElement) {
+                    overlayElement.style.visibility = 'visible';
+                    overlayElement.style.pointerEvents = 'auto';
+                }
+                document.getElementById('solveButton').disabled = true;
+            }
+        }
+
         newGame();
         updateFooterLinks();
     </script>
