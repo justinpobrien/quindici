@@ -51,9 +51,10 @@ h1 {
     margin-bottom: 5px;
 }
 
-h3 {
+h2 {
     font-family: "Clear Sans", sans-serif;
     font-weight: 200;
+    font-style: normal;
     margin-top: 0px;
     color: #000;
     opacity: 0.5;
