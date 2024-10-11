@@ -105,10 +105,13 @@ h2 {
 }
 
 .shortcut-overlay h2 {
+    font-family: "Clear Sans", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 2em; /* Adjust font size */
     color: #f0d078;
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 2em; /* Adjust font size */
     text-align: center;
     opacity: 1;
 }
