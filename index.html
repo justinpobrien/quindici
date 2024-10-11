@@ -22,7 +22,28 @@
         <h2>The Classic 15-Puzzle Built by AI</h2>
         <div class="board" id="board">
             <div id="tiles"></div>
-            <div id="overlay" class="overlay">Game Over</div>
+            <div id="overlay" class="game-over-overlay" style="display: none;">Game Over</div>
+
+            <!-- Keyboard Shortcuts Overlay -->
+            <div id="shortcutOverlay" class="shortcut-overlay style="display: none;">
+                <div class="overlay-content">
+                    <h2>Keyboard Shortcuts</h2>
+                    <div class="shortcut"><span class="key">↑: </span>Shift tile up into empty space</div>
+                    <div class="shortcut"><span class="key">↓: </span>Shift tile down into empty space</div>
+                    <div class="shortcut"><span class="key">←: </span>Shift tile left into empty space</div>
+                    <div class="shortcut"><span class="key">→: </span>Shift tile right into empty space</div>
+                    <div class="shortcut"><span class="key">Shift+Arrow: </span>Move multiple tiles into empty space</div>
+                    <div class="shortcut"><span class="key">a: </span>New game</div>
+                    <div class="shortcut"><span class="key">s: </span>Solve step</div>
+                    <div class="shortcut"><span class="key">x: </span>Pause/unpause game</div>
+                    <div class="shortcut"><span class="key">f: </span>Open solver to find optimal solution</div>
+                    <div class="shortcut"><span class="key">?: </span>Open keyboard shortcut help</div>
+                    <div class="close">
+                        <a href="#" onclick="toggleShortcutOverlay(); return false;" style="color: #f0d078; text-decoration: none;">Close</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="status-bar">
@@ -170,7 +191,7 @@
         }
 
         function moveTile(index) {
-            if (gameWon || gamePaused) return; // Added gamePaused check
+            if (gameWon || gamePaused || shortcutOverlayOpen) return;
             const emptyIndex = board.indexOf(0);
             const row = Math.floor(index / size);
             const col = index % size;
@@ -216,7 +237,7 @@
         }
 
         function solveStep() {
-            if (gameWon || gamePaused) return; // Added gamePaused check
+            if (gameWon || gamePaused || shortcutOverlayOpen) return;
 
             if (solutionPath.length === 0) {
                 solutionPath = greedyBestFirstSearch(board.slice());
@@ -374,10 +395,23 @@
             return array.join(',');
         }
 
+        // Variable to track if shortcut overlay is open
+        let shortcutOverlayOpen = false;
+
         document.addEventListener('keydown', handleKeydown);
 
         function handleKeydown(event) {
             if (gameWon) return;
+
+            // Handle shortcut overlay toggle
+            if (event.key === '?') {
+                toggleShortcutOverlay();
+                event.preventDefault();
+                return;
+            }
+
+            // If the shortcut overlay is open, ignore other key presses
+            if (shortcutOverlayOpen) return;
 
             // Handle pause/unpause regardless of gamePaused state
             if (event.key === 'x' || event.key === 'X') {
@@ -495,14 +529,36 @@
             }
         }
 
+        // Function to toggle the keyboard shortcuts overlay
+        function toggleShortcutOverlay() {
+            const overlayElement = document.getElementById('shortcutOverlay');
+            if (shortcutOverlayOpen) {
+                // Close the overlay
+                shortcutOverlayOpen = false;
+                overlayElement.style.display = 'none';
+                // Resume the game if it was not paused
+                if (!gamePaused) {
+                    startTimer();
+                }
+            } else {
+                // Open the overlay
+                shortcutOverlayOpen = true;
+                overlayElement.style.display = 'flex';
+                // Pause the timer
+                pauseTimer();
+            }
+        }
+
         function togglePauseGame() {
+            // If the shortcut overlay is open, do nothing
+            if (shortcutOverlayOpen) return;
+
             const overlayElement = document.getElementById('overlay');
             if (gamePaused) {
                 // Unpause the game
                 gamePaused = false;
                 if (overlayElement) {
-                    overlayElement.style.visibility = 'hidden';
-                    overlayElement.style.pointerEvents = 'none';
+                    overlayElement.style.display = 'none';
                 }
                 // Resume the timer
                 startTimer();
@@ -511,8 +567,7 @@
                 gamePaused = true;
                 if (overlayElement) {
                     overlayElement.textContent = 'Game Paused';
-                    overlayElement.style.visibility = 'visible';
-                    overlayElement.style.pointerEvents = 'auto';
+                    overlayElement.style.display = 'flex';
                 }
                 // Pause the timer
                 pauseTimer();
