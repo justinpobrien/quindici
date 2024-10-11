@@ -1,5 +1,3 @@
-/* @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600&display=swap'); */
-
 @font-face {
     font-family: "Clear Sans";
     src: url("fonts/ClearSans-Light.eot");
@@ -8,6 +6,7 @@
          url("fonts/ClearSans-Light.woff") format("woff");
     font-weight: 200;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -18,6 +17,7 @@
          url("fonts/ClearSans-Regular.woff") format("woff");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -28,6 +28,7 @@
          url("fonts/ClearSans-Bold.woff") format("woff");
     font-weight: 600;
     font-style: normal;
+    font-display: swap;
 }
 
 
