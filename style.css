@@ -69,7 +69,7 @@ h2 {
     width: 100%;
     height: 100%;
     /* Remove pointer-events: none; */
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     color: #99EA7B;
     display: flex; /* Hide the overlay by default */
     justify-content: center;
@@ -86,7 +86,7 @@ h2 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     display: none;
     justify-content: center;
     align-items: center;
