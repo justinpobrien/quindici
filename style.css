@@ -1,13 +1,50 @@
 :root {
+    --font-family: "Clear Sans", sans-serif;
+    --font-weight: 600;
+    --background-color: #F9F6E9;
     --tile-gap: 2%;          /* Gap between tiles */
     --board-padding: 2%;     /* Padding around the board */
     --total-padding: 4%;     /* Total vertical padding (top + bottom) */
     --total-gap: 6%;         /* Total vertical gaps (3 gaps between 4 rows) */
 }
 
+
 /* Apply box-sizing globally */
 *, *::before, *::after {
     box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Light.eot");
+    src: url("fonts/ClearSans-Light.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Light.svg#clear_sans_lightregular") format("svg"),
+         url("fonts/ClearSans-Light.woff") format("woff");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Regular.eot");
+    src: url("fonts/ClearSans-Regular.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Regular.svg#clear_sansregular") format("svg"),
+         url("fonts/ClearSans-Regular.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Clear Sans";
+    src: url("fonts/ClearSans-Bold.eot");
+    src: url("fonts/ClearSans-Bold.eot?#iefix") format("embedded-opentype"),
+         url("fonts/ClearSans-Bold.svg#clear_sansbold") format("svg"),
+         url("fonts/ClearSans-Bold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
 }
 
 /* General body styles */
@@ -17,7 +54,7 @@ body {
     font-style: normal;
     display: flex;
     justify-content: center; /* Horizontally centers .game-container */
-    align-items: flex-start; /* Vertically aligns .game-container to the top */
+    align-items: center;     /* Vertically centers .game-container */
     height: 100vh;           /* Full viewport height */
     margin: 0;
     background-color: #F9F6E9;
@@ -27,7 +64,7 @@ body {
 /* Header styles */
 h1 {
     color: #776e65;
-    margin-bottom: 5px;
+    margin: 0px 0px 5px 0px;
     font-size: clamp(20px, 8vw, 32px); /* Responsive font size */
 }
 
@@ -49,13 +86,12 @@ h2 {
     max-width: 500px;
     max-height: 90vh; /* Ensure it doesn't exceed viewport height */
     margin: auto;
-    padding: 10px;
+    padding: 0px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
     overflow: hidden; /* Prevent internal scrolling */
-    /* Removed background-color, border-radius, and box-shadow */
 }
 
 /* Board styles */
@@ -255,7 +291,7 @@ h2 {
 /* Buttons */
 button {
     font-size: 1em; /* Relative to .game-container */
-    padding: 0.5em 1em; /* Relative padding */
+    padding: 0.7em 1.4em; /* Relative padding */
     border-radius: 5px;
     cursor: pointer;
     margin: 0.5em;
@@ -274,8 +310,20 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* Responsive adjustments */
+
+/* Base styles for smaller screens (max-width: 768px) */
 @media (max-width: 768px) {
+
+    body {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight);
+        display: inline;
+        height: 100vh;           /* Full viewport height */
+        margin: 0;
+        background-color: var(--background-color);
+        overflow: hidden;        /* Prevent any scrolling */
+    }
+
     .game-container {
         width: 95vw;
         max-width: none;
@@ -290,11 +338,26 @@ button:disabled {
         font-size: clamp(16px, 5vw, 28px);
     }
 
+    .tile,
+    .shortcut-overlay .overlay-content,
+    .shortcut-overlay h2,
+    .shortcut-overlay .close a,
+    .status-bar,
+    .buttons,
+    button,
+    .footer p {
+        /* Common responsive styles */
+    }
+
     .tile {
         font-size: 2em; /* Ensure font-size remains consistent */
     }
 
-    .shortcut-overlay .overlay-content {
+    .shortcut-overlay .overlay-content,
+    .shortcut-overlay .close a,
+    .status-bar,
+    button,
+    .footer p {
         font-size: 1em;
     }
 
@@ -302,40 +365,17 @@ button:disabled {
         font-size: 2em;
     }
 
-    .shortcut-overlay .close a {
-        font-size: 1em;
-    }
-
     .status-bar {
         font-size: 0.9em; /* Slightly reduce font size */
     }
 
-    .buttons {
+    .buttons,
+    #tiles {
         gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
     button {
         font-size: 0.9em; /* Adjust button font size */
-        padding: 0.4em 0.8em; /* Adjust button padding */
-    }
-
-    .footer p {
-        font-size: 1em;
-    }
-}
-
-@media (max-width: 500px) {
-    .buttons {
-        gap: var(--tile-gap); /* Maintain 2% gap */
-    }
-
-    button {
-        font-size: 0.8em; /* Further adjust button font size */
-        padding: 0.3em 0.6em; /* Further adjust button padding */
-    }
-
-    #tiles {
-        gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
     .board {
@@ -343,18 +383,26 @@ button:disabled {
     }
 }
 
+/* Additional styles for smaller screens (max-width: 500px) */
+@media (max-width: 500px) {
+
+    button {
+        font-size: 0.8em; /* Further adjust button font size */
+    }
+
+    /* Since .buttons and #tiles already have gap defined in 768px, no need to redefine */
+
+}
+
+/* Further adjustments for the smallest screens (max-width: 400px) */
 @media (max-width: 400px) {
+
     .status-bar {
         font-size: 0.75em; /* Further reduce font size */
     }
 
-    .buttons {
-        gap: var(--tile-gap); /* Maintain 2% gap */
-    }
-
     button {
         font-size: 0.75em; /* Further adjust button font size */
-        padding: 0.25em 0.5em; /* Further adjust button padding */
     }
 
     .shortcut-overlay .overlay-content {
@@ -369,11 +417,5 @@ button:disabled {
         font-size: 1.5em;
     }
 
-    #tiles {
-        gap: var(--tile-gap); /* Maintain 2% gap */
-    }
-
-    .board {
-        padding: var(--board-padding); /* Maintain 2% padding */
-    }
+    /* .buttons, #tiles, and .board already have necessary styles from larger media queries */
 }
