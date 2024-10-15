@@ -44,10 +44,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100vh; /* Full viewport height */
     margin: 0;
     background-color: #F9F6E9;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow: hidden; /* Prevent any scrolling */
 }
 
 /* Header styles */
@@ -73,10 +73,14 @@ h2 {
     text-align: center;
     width: 90vw;
     max-width: 500px;
+    max-height: 90vh; /* Ensure it doesn't exceed viewport height */
     margin: auto;
     padding: 10px;
     box-sizing: border-box;
-    font-size: 16px; /* Base font size for em units */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; /* Prevent internal scrolling */
 }
 
 /* Board styles */
@@ -90,6 +94,10 @@ h2 {
     width: 100%;
     box-sizing: border-box;
     font-size: 1em; /* Relative to .game-container */
+    flex: 1 1 auto; /* Allow the board to expand and shrink */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Overlay styles confined within the board */
@@ -110,6 +118,7 @@ h2 {
     box-sizing: border-box;
     text-align: center;
     border-radius: 10px; /* Match board's border radius */
+    overflow: auto; /* Allow scrolling within overlay if content exceeds */
 }
 
 /* Specific styles for Game Over Overlay */
@@ -183,6 +192,7 @@ h2 {
     justify-content: center; /* Center buttons horizontally */
     gap: 10px; /* Space between buttons */
     margin-bottom: 10px; /* Space below buttons */
+    flex-wrap: wrap; /* Allow buttons to wrap if space is limited */
 }
 
 button {
@@ -210,6 +220,7 @@ button:disabled {
 .footer {
     margin-top: 10px;
     font-size: 0.9em; /* Relative to .game-container */
+    flex-shrink: 0; /* Prevents footer from shrinking */
 }
 
 .footer p {
@@ -218,6 +229,7 @@ button:disabled {
     color: #333;
     margin: 0 auto;
     line-height: 1.4;
+    word-wrap: break-word; /* Prevent long words from overflowing */
 }
 
 .footer a {
@@ -236,6 +248,8 @@ button:disabled {
     grid-template-columns: repeat(4, 1fr);
     gap: 2%;
     width: 100%;
+    flex: 1 1 auto; /* Allow tiles to expand */
+    overflow: hidden; /* Prevent tiles from overflowing */
 }
 
 /* Tile styles */
@@ -245,7 +259,7 @@ button:disabled {
     position: relative;
     background-color: #ECE0CA;
     color: #766E66;
-    font-size: 1.2em; /* Relative to .board's font-size */
+    font-size: 2em; /* Relative to .board's font-size */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -286,6 +300,7 @@ button:disabled {
     .game-container {
         width: 95vw;
         max-width: none;
+        max-height: 95vh; /* Slightly larger max-height for medium screens */
     }
 
     h1 {
