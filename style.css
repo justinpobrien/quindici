@@ -226,7 +226,7 @@ h2 {
     position: relative;
     background-color: #ECE0CA;
     color: #766E66;
-    font-size: 2em; /* Increased font size */
+    font-size: 3em; /* Increased font size */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -374,10 +374,6 @@ button:disabled {
         gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
-    button {
-        font-size: 0.9em; /* Adjust button font size */
-    }
-
     .board {
         padding: var(--board-padding); /* Maintain 2% padding */
     }
@@ -385,10 +381,6 @@ button:disabled {
 
 /* Additional styles for smaller screens (max-width: 500px) */
 @media (max-width: 500px) {
-
-    button {
-        font-size: 0.8em; /* Further adjust button font size */
-    }
 
     /* Since .buttons and #tiles already have gap defined in 768px, no need to redefine */
 
@@ -400,11 +392,7 @@ button:disabled {
     .status-bar {
         font-size: 0.75em; /* Further reduce font size */
     }
-
-    button {
-        font-size: 0.75em; /* Further adjust button font size */
-    }
-
+    
     .shortcut-overlay .overlay-content {
         font-size: 1.2em;
     }
