@@ -338,20 +338,6 @@ button:disabled {
         font-size: clamp(16px, 5vw, 28px);
     }
 
-    .tile,
-    .shortcut-overlay .overlay-content,
-    .shortcut-overlay h2,
-    .shortcut-overlay .close a,
-    .status-bar,
-    .buttons,
-    button,
-    .footer p {
-        /* Common responsive styles */
-    }
-
-    .tile {
-        font-size: 2em; /* Ensure font-size remains consistent */
-    }
 
     .shortcut-overlay .overlay-content,
     .shortcut-overlay .close a,
@@ -379,20 +365,9 @@ button:disabled {
     }
 }
 
-/* Additional styles for smaller screens (max-width: 500px) */
-@media (max-width: 500px) {
-
-    /* Since .buttons and #tiles already have gap defined in 768px, no need to redefine */
-
-}
-
 /* Further adjustments for the smallest screens (max-width: 400px) */
 @media (max-width: 400px) {
 
-    .status-bar {
-        font-size: 0.75em; /* Further reduce font size */
-    }
-    
     .shortcut-overlay .overlay-content {
         font-size: 1.2em;
     }
