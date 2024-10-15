@@ -6,6 +6,12 @@
     --board-padding: 2%;     /* Padding around the board */
     --total-padding: 4%;     /* Total vertical padding (top + bottom) */
     --total-gap: 6%;         /* Total vertical gaps (3 gaps between 4 rows) */
+    --button-bg: #8C7B68;
+    --button-hover-bg: #AA9681;
+    --button-color: #F7F4F1;
+    --button-padding: 0.7em 1.4em;
+    --button-transition: background-color 0.3s ease, transform 0.3s ease;
+    --button-transform: scale(1.05);
 }
 
 
@@ -129,7 +135,7 @@ h2 {
     padding: 5%;
     box-sizing: border-box;
     text-align: center;
-    border-radius: 10px; /* Match board's border radius */
+    border-radius: 2px; /* Match board's border radius */
     overflow: auto; /* Allow scrolling within overlay if content exceeds */
 }
 
@@ -241,14 +247,6 @@ h2 {
     transform: none;
 }
 
-/* Hover and Active States */
-.tile:hover:not(.empty):not(.disabled),
-.tile:active:not(.empty):not(.disabled) {
-    background-color: #EAB47F;
-    color: #F9F6F3;
-    cursor: pointer;
-    transform: scale(1.05);
-}
 
 /* Empty tile styles */
 .empty {
@@ -288,26 +286,42 @@ h2 {
     text-decoration: none;
 }
 
+
+
 /* Buttons */
 button {
     font-size: 1em; /* Relative to .game-container */
-    padding: 0.7em 1.4em; /* Relative padding */
+    padding: var(--button-padding);
     border-radius: 5px;
     cursor: pointer;
     margin: 0.5em;
-    background: #8C7B68;
-    color: #F7F4F1;
+    background-color: var(--button-bg);
+    color: var(--button-color);
     border: none;
-    transition: background 0.3s ease;
-}
-
-button:hover {
-    background: #AA9681;
+    transition: var(--button-transition);
+    /*transition: background 0.3s ease; */
 }
 
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+
+/* Hover Styles for Devices with Hover Capability and Sufficient Screen Width */
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+    button:hover {
+        background-color: var(--button-hover-bg);
+    }
+    
+    /* Hover and Active States */
+    .tile:hover:not(.empty):not(.disabled),
+    .tile:active:not(.empty):not(.disabled) {
+        background-color: #EAB47F;
+        color: #F9F6F3;
+        cursor: pointer;
+        transform: scale(1.05);
+    }
 }
 
 
@@ -338,6 +352,9 @@ button:disabled {
         font-size: clamp(16px, 5vw, 28px);
     }
 
+    .tile:hover {
+        
+    }
 
     .shortcut-overlay .overlay-content,
     .shortcut-overlay .close a,
