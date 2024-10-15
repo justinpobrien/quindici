@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quindici - Classic AI-Built 15-Puzzle Game with Solver</title>
     <meta name="description" content="Quindici: Classic 15-puzzle sliding tile game built by AI using large language models. Features a 15-puzzle solver, Solve Step hints, move counter, and timer. Play and solve the game of fifteen!">
     <meta property="og:title" content="Qiundici" />
@@ -25,7 +25,7 @@
             <div id="overlay" class="game-over-overlay">You Won!</div>
 
             <!-- Keyboard Shortcuts Overlay -->
-            <div id="shortcutOverlay" class="shortcut-overlay style="display: none;">
+            <div id="shortcutOverlay" class="shortcut-overlay" style="display: none;">
                 <div class="overlay-content">
                     <h2>Keyboard Shortcuts</h2>
                     <div class="shortcut"><span class="key">↑: </span>Shift tile up into empty space</div>
@@ -50,11 +50,10 @@
             <div class="move-counter"><span id="moveCounter">0</span> moves</div>
             <div class="timer"><span id="timer">0:00</span></div>
         </div>
-
-        <button onclick="newGame()">New Game</button>
-        <button onclick="solveStep()" id="solveButton">Solve Step</button>
-
-
+        <div class="buttons">
+            <button onclick="newGame()">New Game</button>
+            <button onclick="solveStep()" id="solveButton">Solve Step</button>
+        </div>
 
         <div class="footer">
             <p><b>Crafted by AI</b> with a little human touch.</p>
@@ -159,6 +158,16 @@
             }
         }
 
+        function debounce(func, delay) {
+            let debounceTimer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
         function renderBoard() {
             const boardElement = document.getElementById('board');
             const tilesElement = document.getElementById('tiles');
@@ -173,9 +182,12 @@
                         tile.style.backgroundColor = '#E4E4E4';
                     }
                 } else {
-                    tile.textContent = board[i];
+                    const span = document.createElement('span');
+                    span.textContent = board[i];
+                    tile.appendChild(span);
                     if (!gameWon) {
                         tile.onclick = () => moveTile(i);
+                        tile.ontouchstart = () => moveTile(i); // Ensure touch responsiveness
                         tile.classList.remove('disabled');
                     } else {
                         tile.classList.add('disabled');
@@ -186,6 +198,8 @@
 
             updateFooterLinks();
         }
+
+
 
         function isGameWon() {
             return board.every((value, index) => value === goalState[index]);

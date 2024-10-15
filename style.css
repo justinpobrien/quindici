@@ -1,3 +1,25 @@
+:root {
+    --font-family: "Clear Sans", sans-serif;
+    --font-weight: 600;
+    --background-color: #F9F6E9;
+    --tile-gap: 2%;          /* Gap between tiles */
+    --board-padding: 2%;     /* Padding around the board */
+    --total-padding: 4%;     /* Total vertical padding (top + bottom) */
+    --total-gap: 6%;         /* Total vertical gaps (3 gaps between 4 rows) */
+    --button-bg: #8C7B68;
+    --button-hover-bg: #AA9681;
+    --button-color: #F7F4F1;
+    --button-padding: 0.7em 1.4em;
+    --button-transition: background-color 0.3s ease, transform 0.3s ease;
+    --button-transform: scale(1.05);
+}
+
+
+/* Apply box-sizing globally */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 @font-face {
     font-family: "Clear Sans";
     src: url("fonts/ClearSans-Light.eot");
@@ -31,25 +53,25 @@
     font-display: swap;
 }
 
-
-
 /* General body styles */
 body {
     font-family: "Clear Sans", sans-serif;
     font-weight: 600;
     font-style: normal;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    justify-content: center; /* Horizontally centers .game-container */
+    align-items: center;     /* Vertically centers .game-container */
+    height: 100vh;           /* Full viewport height */
     margin: 0;
     background-color: #F9F6E9;
+    overflow: hidden;        /* Prevent any scrolling */
 }
 
 /* Header styles */
 h1 {
     color: #776e65;
-    margin-bottom: 5px;
+    margin: 0px 0px 5px 0px;
+    font-size: clamp(20px, 8vw, 32px); /* Responsive font size */
 }
 
 h2 {
@@ -58,129 +80,173 @@ h2 {
     font-style: normal;
     margin-top: 0px;
     color: #000;
-    opacity: 0.5;
+    opacity: 0.7;
+    font-size: clamp(14px, 4vw, 24px);
 }
 
-/* Existing overlay styles */
-.game-over-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Remove pointer-events: none; */
-    background: rgba(0, 0, 0, 0.8);
-    color: #99EA7B;
-    display: flex; /* Hide the overlay by default */
-    justify-content: center;
-    align-items: center;
-    font-size: 2em;
-    z-index: 10;
-}
-
-.shortcut-overlay {
-    /* Styles specific to the Shortcut Overlay */
-    /* Include all necessary styles here */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    /* Additional styles for content */
-}
-
-/* Styles specific to the shortcut overlay */
-.shortcut-overlay .overlay-content {
-    padding: 20px;
-    width: 90%;
+/* Game container styles */
+.game-container {
+    position: relative;
+    text-align: center;
+    width: 90vw;
     max-width: 500px;
+    max-height: 90vh; /* Ensure it doesn't exceed viewport height */
+    margin: auto;
+    padding: 0px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; /* Prevent internal scrolling */
+}
+
+/* Board styles */
+.board {
+    position: relative; /* Ensure overlays are positioned relative to board */
+    margin: 0 auto 10px auto;
+    background-color: #B9AEA1;
+    padding: var(--board-padding); /* Use CSS variable */
+    border-radius: 10px;
+    border: 3px solid #000;
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Make the board square */
+    box-sizing: border-box;
+    font-size: 1em; /* Relative to .game-container */
+    flex: 1 1 auto; /* Allow the board to expand and shrink */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically centers tiles */
+}
+
+/* Overlay styles confined within the board */
+.game-over-overlay, .shortcut-overlay {
+    position: absolute; /* Changed from fixed to absolute */
+    top: 0;
+    left: 0;
+    width: 100%; /* Cover the entire board */
+    height: 100%; /* Cover the entire board */
+    background: rgba(0, 0, 0, 0.8);
     color: #ffffff;
-    font-size: 0.8em; /* Adjust font size as needed */
-    text-align: left;
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em; /* Relative font size */
+    z-index: 10;
+    padding: 5%;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 2px; /* Match board's border radius */
+    overflow: auto; /* Allow scrolling within overlay if content exceeds */
+}
+
+/* Specific styles for Game Over Overlay */
+.game-over-overlay {
+    color: #99EA7B;
+    /* Additional styles if needed */
+}
+
+/* Specific styles for Shortcut Overlay */
+.shortcut-overlay .overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em; /* Space between shortcuts */
+    padding: 5%;
+    width: 100%;
+    max-width: 400px;
+    color: #ffffff;
+    font-size: 0.9em; /* Relative to overlay's font-size */
+    word-wrap: break-word; /* Allow text to wrap */
 }
 
 .shortcut-overlay h2 {
     font-family: "Clear Sans", sans-serif;
     font-weight: 600;
     font-style: normal;
-    font-size: 2em; /* Adjust font size */
+    font-size: 1.8em; /* Responsive font size */
     color: #f0d078;
     margin-top: 0;
-    margin-bottom: 15px;
-    text-align: center;
-    opacity: 1;
+    margin-bottom: 10px;
 }
 
 .shortcut-overlay .shortcut {
     display: flex;
-    /*justify-content: space-between;*/
-    margin-bottom: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 8px;
 }
 
 .shortcut-overlay .key {
     color: #f0d078;
     font-weight: bold;
-    margin-right: 10px;
+    margin-bottom: 3px;
 }
 
-.shortcut-overlay .close {
-    text-align: center;
-    margin-top: 15px;
+.shortcut-overlay .close a {
+    font-size: 1em; /* Relative font size */
     color: #f0d078;
     text-decoration: none;
     font-weight: bold;
 }
 
-
-/* Game container styles */
-.game-container {
-    position: relative;
-    text-align: center;
+/* Status Bar Styles */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; /* Space below the status bar */
+    font-size: 1em; /* Relative to .game-container */
 }
 
-/* Board styles */
-.board {
-    position: relative; /* Ensure overlay positions correctly */
-    margin-bottom: 5px;
-    background-color: #B9AEA1;
-    padding: 20px;
-    border-radius: 10px;
-    border: 3px solid #000;
+.move-counter, .timer {
+    font-size: 1em; /* Relative to .status-bar */
+    font-weight: bold;
+}
+
+/* Buttons Container Styles */
+.buttons {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: var(--tile-gap); /* Maintain 2% gap */
+    margin-bottom: 10px; /* Space below buttons */
+    flex-wrap: wrap; /* Allow buttons to wrap if space is limited */
 }
 
 /* Tiles container styles */
 #tiles {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-rows: repeat(4, 1fr); /* Define rows explicitly */
+    gap: var(--tile-gap); /* Use CSS variable for gap */
+    width: 100%;
+    height: calc(100% - var(--total-padding) - var(--total-gap)); /* 100% - 4% padding - 6% gaps = 90% */
+    flex: 1 1 auto; /* Allow tiles to expand */
+    overflow: hidden; /* Prevent tiles from overflowing */
 }
 
 /* Tile styles */
 .tile {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    /* Removed aspect-ratio: 1 / 1; */
+    position: relative;
     background-color: #ECE0CA;
     color: #766E66;
-    font-size: 48px;
+    font-size: 3em; /* Increased font size */
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 10px;
     box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
-    transition: background-color 0.3s ease 0s, color 0.3s ease 0s, transform 0.3s ease 1s;
-
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
-.tile:hover:not(.empty):not(.disabled) {
-    background-color: #EAB47F;
-    color: #F9F6F3;
-    cursor: pointer;
+.tile > span {
+    /* Center the number using Flexbox */
+    position: static; /* Removed absolute positioning */
+    transform: none;
 }
+
 
 /* Empty tile styles */
 .empty {
@@ -194,21 +260,46 @@ h2 {
     color: #969696;
 }
 
-/* Button styles */
-button {
-    font-size: 18px;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 5px;
-    background: #8C7B68;
-    color: #F7F4F1;
-    border: none;
-    transition: background 0.3s ease;
+/* Footer styles */
+.footer {
+    margin-top: 10px;
+    font-size: 0.9em; /* Relative to .game-container */
+    flex-shrink: 0; /* Prevents footer from shrinking */
 }
 
-button:hover {
-    background: #AA9681;
+.footer p {
+    font-family: "Clear Sans", sans-serif;
+    font-weight: normal;
+    color: #333;
+    margin: 0 auto;
+    line-height: 1.4;
+    word-wrap: break-word; /* Prevent long words from overflowing */
+}
+
+.footer a {
+    color: #2962ff;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.footer a:hover {
+    text-decoration: none;
+}
+
+
+
+/* Buttons */
+button {
+    font-size: 1em; /* Relative to .game-container */
+    padding: var(--button-padding);
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0.5em;
+    background-color: var(--button-bg);
+    color: var(--button-color);
+    border: none;
+    transition: var(--button-transition);
+    /*transition: background 0.3s ease; */
 }
 
 button:disabled {
@@ -217,39 +308,94 @@ button:disabled {
 }
 
 
-.footer p {
-    font-family: "Clear Sans", sans-serif;
-    font-weight: normal;
-    color: #333;
-    margin: 0  auto;
+/* Hover Styles for Devices with Hover Capability and Sufficient Screen Width */
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+    button:hover {
+        background-color: var(--button-hover-bg);
+    }
+    
+    /* Hover and Active States */
+    .tile:hover:not(.empty):not(.disabled),
+    .tile:active:not(.empty):not(.disabled) {
+        background-color: #EAB47F;
+        color: #F9F6F3;
+        cursor: pointer;
+        transform: scale(1.05);
+    }
 }
 
-.footer a {
-    color: #2962ff;
-    text-decoration: none;
-    font-weight: bold;
+
+/* Base styles for smaller screens (max-width: 768px) */
+@media (max-width: 768px) {
+
+    body {
+        font-family: var(--font-family);
+        font-weight: var(--font-weight);
+        display: inline;
+        height: 100vh;           /* Full viewport height */
+        margin: 0;
+        background-color: var(--background-color);
+        overflow: hidden;        /* Prevent any scrolling */
+    }
+
+    .game-container {
+        width: 95vw;
+        max-width: none;
+        max-height: 95vh; /* Slightly larger max-height for medium screens */
+    }
+
+    h1 {
+        font-size: clamp(24px, 10vw, 36px);
+    }
+
+    h2 {
+        font-size: clamp(16px, 5vw, 28px);
+    }
+
+    .tile:hover {
+        
+    }
+
+    .shortcut-overlay .overlay-content,
+    .shortcut-overlay .close a,
+    .status-bar,
+    button,
+    .footer p {
+        font-size: 1em;
+    }
+
+    .shortcut-overlay h2 {
+        font-size: 2em;
+    }
+
+    .status-bar {
+        font-size: 0.9em; /* Slightly reduce font size */
+    }
+
+    .buttons,
+    #tiles {
+        gap: var(--tile-gap); /* Maintain 2% gap */
+    }
+
+    .board {
+        padding: var(--board-padding); /* Maintain 2% padding */
+    }
 }
 
-.footer a:hover {
-    text-decoration: none;
-}
+/* Further adjustments for the smallest screens (max-width: 400px) */
+@media (max-width: 400px) {
 
-.footer {
-    margin-top: 10px;
-}
+    .shortcut-overlay .overlay-content {
+        font-size: 1.2em;
+    }
 
-.footer p {
-    line-height: 1.5;
-}
+    .shortcut-overlay h2 {
+        font-size: 2.5em;
+    }
 
-.status-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
+    .shortcut-overlay .close a {
+        font-size: 1.5em;
+    }
 
-.move-counter, .timer {
-    font-size: 16px;
-    font-weight: bold;
+    /* .buttons, #tiles, and .board already have necessary styles from larger media queries */
 }
