@@ -1,34 +1,8 @@
-@font-face {
-    font-family: "Clear Sans";
-    src: url("fonts/ClearSans-Light.eot");
-    src: url("fonts/ClearSans-Light.eot?#iefix") format("embedded-opentype"),
-         url("fonts/ClearSans-Light.svg#clear_sans_lightregular") format("svg"),
-         url("fonts/ClearSans-Light.woff") format("woff");
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Clear Sans";
-    src: url("fonts/ClearSans-Regular.eot");
-    src: url("fonts/ClearSans-Regular.eot?#iefix") format("embedded-opentype"),
-         url("fonts/ClearSans-Regular.svg#clear_sansregular") format("svg"),
-         url("fonts/ClearSans-Regular.woff") format("woff");
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Clear Sans";
-    src: url("fonts/ClearSans-Bold.eot");
-    src: url("fonts/ClearSans-Bold.eot?#iefix") format("embedded-opentype"),
-         url("fonts/ClearSans-Bold.svg#clear_sansbold") format("svg"),
-         url("fonts/ClearSans-Bold.woff") format("woff");
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
+:root {
+    --tile-gap: 2%;          /* Gap between tiles */
+    --board-padding: 2%;     /* Padding around the board */
+    --total-padding: 4%;     /* Total vertical padding (top + bottom) */
+    --total-gap: 6%;         /* Total vertical gaps (3 gaps between 4 rows) */
 }
 
 /* Apply box-sizing globally */
@@ -42,12 +16,12 @@ body {
     font-weight: 600;
     font-style: normal;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
+    justify-content: center; /* Horizontally centers .game-container */
+    align-items: flex-start; /* Vertically aligns .game-container to the top */
+    height: 100vh;           /* Full viewport height */
     margin: 0;
     background-color: #F9F6E9;
-    overflow: hidden; /* Prevent any scrolling */
+    overflow: hidden;        /* Prevent any scrolling */
 }
 
 /* Header styles */
@@ -81,6 +55,7 @@ h2 {
     flex-direction: column;
     justify-content: center;
     overflow: hidden; /* Prevent internal scrolling */
+    /* Removed background-color, border-radius, and box-shadow */
 }
 
 /* Board styles */
@@ -88,16 +63,17 @@ h2 {
     position: relative; /* Ensure overlays are positioned relative to board */
     margin: 0 auto 10px auto;
     background-color: #B9AEA1;
-    padding: 5%;
+    padding: var(--board-padding); /* Use CSS variable */
     border-radius: 10px;
     border: 3px solid #000;
     width: 100%;
+    aspect-ratio: 1 / 1; /* Make the board square */
     box-sizing: border-box;
     font-size: 1em; /* Relative to .game-container */
     flex: 1 1 auto; /* Allow the board to expand and shrink */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: center; /* Vertically centers tiles */
 }
 
 /* Overlay styles confined within the board */
@@ -190,30 +166,64 @@ h2 {
 .buttons {
     display: flex;
     justify-content: center; /* Center buttons horizontally */
-    gap: 10px; /* Space between buttons */
+    gap: var(--tile-gap); /* Maintain 2% gap */
     margin-bottom: 10px; /* Space below buttons */
     flex-wrap: wrap; /* Allow buttons to wrap if space is limited */
 }
 
-button {
-    font-size: 1em; /* Relative to .game-container */
-    padding: 0.5em 1em; /* Relative padding */
-    border-radius: 5px;
+/* Tiles container styles */
+#tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr); /* Define rows explicitly */
+    gap: var(--tile-gap); /* Use CSS variable for gap */
+    width: 100%;
+    height: calc(100% - var(--total-padding) - var(--total-gap)); /* 100% - 4% padding - 6% gaps = 90% */
+    flex: 1 1 auto; /* Allow tiles to expand */
+    overflow: hidden; /* Prevent tiles from overflowing */
+}
+
+/* Tile styles */
+.tile {
+    width: 100%;
+    /* Removed aspect-ratio: 1 / 1; */
+    position: relative;
+    background-color: #ECE0CA;
+    color: #766E66;
+    font-size: 2em; /* Increased font size */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.tile > span {
+    /* Center the number using Flexbox */
+    position: static; /* Removed absolute positioning */
+    transform: none;
+}
+
+/* Hover and Active States */
+.tile:hover:not(.empty):not(.disabled),
+.tile:active:not(.empty):not(.disabled) {
+    background-color: #EAB47F;
+    color: #F9F6F3;
     cursor: pointer;
-    margin: 0.5em;
-    background: #8C7B68;
-    color: #F7F4F1;
-    border: none;
-    transition: background 0.3s ease;
+    transform: scale(1.05);
 }
 
-button:hover {
-    background: #AA9681;
+/* Empty tile styles */
+.empty {
+    background-color: #C9BCAD;
+    box-shadow: none;
 }
 
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+/* Disabled tile styles */
+.disabled {
+    background-color: #E4E4E4;
+    color: #969696;
 }
 
 /* Footer styles */
@@ -242,57 +252,26 @@ button:disabled {
     text-decoration: none;
 }
 
-/* Tiles container styles */
-#tiles {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2%;
-    width: 100%;
-    flex: 1 1 auto; /* Allow tiles to expand */
-    overflow: hidden; /* Prevent tiles from overflowing */
-}
-
-/* Tile styles */
-.tile {
-    width: 100%;
-    padding-top: 100%; /* Square tiles */
-    position: relative;
-    background-color: #ECE0CA;
-    color: #766E66;
-    font-size: 2em; /* Relative to .board's font-size */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-    box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-}
-
-.tile > span {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.tile:hover:not(.empty):not(.disabled),
-.tile:active:not(.empty):not(.disabled) {
-    background-color: #EAB47F;
-    color: #F9F6F3;
+/* Buttons */
+button {
+    font-size: 1em; /* Relative to .game-container */
+    padding: 0.5em 1em; /* Relative padding */
+    border-radius: 5px;
     cursor: pointer;
-    transform: scale(1.05);
+    margin: 0.5em;
+    background: #8C7B68;
+    color: #F7F4F1;
+    border: none;
+    transition: background 0.3s ease;
 }
 
-/* Empty tile styles */
-.empty {
-    background-color: #C9BCAD;
-    box-shadow: none;
+button:hover {
+    background: #AA9681;
 }
 
-/* Disabled tile styles */
-.disabled {
-    background-color: #E4E4E4;
-    color: #969696;
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Responsive adjustments */
@@ -312,7 +291,7 @@ button:disabled {
     }
 
     .tile {
-        font-size: 1.3em;
+        font-size: 2em; /* Ensure font-size remains consistent */
     }
 
     .shortcut-overlay .overlay-content {
@@ -332,7 +311,7 @@ button:disabled {
     }
 
     .buttons {
-        gap: 8px; /* Reduce space between buttons */
+        gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
     button {
@@ -347,12 +326,20 @@ button:disabled {
 
 @media (max-width: 500px) {
     .buttons {
-        gap: 6px; /* Further reduce space between buttons */
+        gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
     button {
         font-size: 0.8em; /* Further adjust button font size */
         padding: 0.3em 0.6em; /* Further adjust button padding */
+    }
+
+    #tiles {
+        gap: var(--tile-gap); /* Maintain 2% gap */
+    }
+
+    .board {
+        padding: var(--board-padding); /* Maintain 2% padding */
     }
 }
 
@@ -362,7 +349,7 @@ button:disabled {
     }
 
     .buttons {
-        gap: 4px; /* Further reduce space between buttons */
+        gap: var(--tile-gap); /* Maintain 2% gap */
     }
 
     button {
@@ -380,5 +367,13 @@ button:disabled {
 
     .shortcut-overlay .close a {
         font-size: 1.5em;
+    }
+
+    #tiles {
+        gap: var(--tile-gap); /* Maintain 2% gap */
+    }
+
+    .board {
+        padding: var(--board-padding); /* Maintain 2% padding */
     }
 }
