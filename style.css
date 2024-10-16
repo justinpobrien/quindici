@@ -352,10 +352,6 @@ button:disabled {
         font-size: clamp(16px, 5vw, 28px);
     }
 
-    .tile:hover {
-        
-    }
-
     .shortcut-overlay .overlay-content,
     .shortcut-overlay .close a,
     .status-bar,

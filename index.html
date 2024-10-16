@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quindici - Classic AI-Built 15-Puzzle Game with Solver</title>
     <meta name="description" content="Quindici: Classic 15-puzzle sliding tile game built by AI using large language models. Features a 15-puzzle solver, Solve Step hints, move counter, and timer. Play and solve the game of fifteen!">
-    <meta property="og:title" content="Qiundici" />
+    <meta property="og:title" content="Quindici" />
     <meta property="og:description" content="The classic 15-puzzle crafted by AI with a little human touch." />
     <meta property="og:image" content="assets/preview-image.jpg" />
     <meta property="og:url" content="https://quindici.io" />
@@ -272,9 +272,7 @@
                     stopTimer(); // Stop Timer
                     const overlayElement = document.getElementById('overlay');
                     if (overlayElement) {
-                        overlayElement.style.display = 'flex'; // TK: Attempt Fix
-                        // overlayElement.style.visibility = 'visible';
-                        // overlayElement.style.pointerEvents = 'auto'; // Added line
+                        overlayElement.style.display = 'flex';
                     }
                     document.getElementById('solveButton').disabled = true;
                 }
