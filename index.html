@@ -748,7 +748,7 @@
                 // Web Share API is supported
                 navigator.share({
                     title: '15-Puzzle Challenge',
-                    text: shareMessage,
+                    text: `15-Puzzle Stats: ${totalScore} (${totalMoves} moves + ${totalTime}s)\nCan you beat ${totalScore}?`, // Can probably shorten shareMessage and add shareUrl in writeText(shareMessage)
                     url: shareUrl,
                 })
                 .then(() => {
