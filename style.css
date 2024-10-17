@@ -128,11 +128,13 @@ h2 {
     background: rgba(0, 0, 0, 0.8);
     color: #ffffff;
     display: none; /* Hidden by default */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     font-size: 1.5em; /* Relative font size */
     z-index: 10;
-    padding: 5%;
+    padding: 5%; /* 10px */
+    gap: 10%;/* 44px; */
     box-sizing: border-box;
     text-align: center;
     border-radius: 2px; /* Match board's border radius */
@@ -286,8 +288,6 @@ h2 {
     text-decoration: none;
 }
 
-
-
 /* Buttons */
 button {
     font-size: 1em; /* Relative to .game-container */
@@ -300,6 +300,30 @@ button {
     border: none;
     transition: var(--button-transition);
     /*transition: background 0.3s ease; */
+}
+
+#shareButton {
+    /* Share Button */
+    font-size: 0.75em;
+    padding: 0.7em 1.4em;
+    /*
+    border-radius: 10px;
+    */
+
+    background-color: #4CAF50;
+
+    /*
+    color:#fff;
+    border: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    */
+}
+
+#shareMessage {
+    font-size: 0.75em;
 }
 
 button:disabled {
