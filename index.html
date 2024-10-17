@@ -31,7 +31,10 @@
         <h2>The Classic 15-Puzzle Built by AI</h2>
         <div class="board" id="board">
             <div id="tiles"></div>
-            <div id="overlay" class="game-over-overlay">You Won!</div>
+            <div id="overlay" class="game-over-overlay">
+                <div id="overlay-title">You Won!</div>
+                <button id="shareButton" onclick="shareGame()">Share Game</button> <!-- New Share Button -->
+            </div>
 
             <!-- Keyboard Shortcuts Overlay -->
             <div id="shortcutOverlay" class="shortcut-overlay" style="display: none;">
@@ -75,6 +78,7 @@
     <script>
         let size = 4;
         let board = [];
+        let initialBoard = []; // Tracks initial board state for sharing
         let gameWon = false;
         let gamePaused = false; // New variable to track pause state
         let solutionPath = [];
@@ -85,6 +89,7 @@
         let timerInterval = null;
         let startTime = null;
         let elapsedTime = 0; // Modified to keep track of elapsed time
+        let finalTime = 0;
 
 
         /**
@@ -101,6 +106,7 @@
                         throw new Error("The provided board state is not solvable.");
                     }
                     board = boardArray;
+                    initialBoard = boardArray.slice(); // Set initialBoard to the provided board
                     renderBoard();
                     document.getElementById('solveButton').disabled = false;
 
@@ -130,17 +136,20 @@
             while (!isSolvable() || isGameWon()) {
                 shuffleBoard();
             }
+            initialBoard = board.slice(); // Set initialBoard to the shuffled board
             gameWon = false;
             gamePaused = false; // Reset pause state
             solutionPath = [];
             renderBoard();
             document.getElementById('solveButton').disabled = false;
-            const overlayElement = document.getElementById('overlay'); 
+            const overlayElement = document.getElementById('overlay-title'); 
             if (overlayElement) { 
                 overlayElement.textContent = 'You Won!'; // Reset overlay text
-                overlayElement.style.display = 'none'; // TK: Attempt Fix
-                // overlayElement.style.visibility = 'hidden'; 
-                // overlayElement.style.pointerEvents = 'none';
+            }
+
+            const overlayModal = document.getElementById('overlay');
+            if (overlayModal) { 
+                overlayModal.style.display = 'none'; // TK: Attempt Fix
             }
 
             // Reset move counter and timer
@@ -150,6 +159,7 @@
             timerInterval = null;
             startTime = null;
             elapsedTime = 0; // Reset elapsed time
+            finalTime = 0; // Reset final time (for final stats)
             updateTimerDisplay(0);
 
             // Enable the "New Game" button in case it was disabled
@@ -157,6 +167,12 @@
             if (newGameButton) {
                 newGameButton.disabled = false;
             }
+
+            // Reset the "Share" button
+            //const shareButton = document.getElementById('shareButton');
+            //if (shareButton) {
+            //    shareButton.disabled = true;
+            //}
         }
 
         function shuffleBoard() {
@@ -343,9 +359,7 @@
                 stopTimer(); // Stop Timer
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
-                    overlayElement.style.display = 'flex'; // TK: Attempt Fix
-                    // overlayElement.style.visibility = 'visible';
-                    // overlayElement.style.pointerEvents = 'auto'; // Added line
+                    overlayElement.style.display = 'flex';
                 }
                 document.getElementById('solveButton').disabled = true;
             }
@@ -408,6 +422,7 @@
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
+            finalTime = elapsedTime
             elapsedTime = 0;
             startTime = null;
         }
@@ -633,14 +648,17 @@
                 gameWon = true;
                 renderBoard();
                 stopTimer();
-                const overlayElement = document.getElementById('overlay');
+                const overlayModal = document.getElementById('overlay');
+                if (overlayModal) {
+                    overlayModal.style.display = 'flex'; // TK: Attempt Fix
+                }
+
+                const overlayElement = document.getElementById('overlay-title');
                 if (overlayElement) {
                     overlayElement.textContent = 'You Won!'; // Set overlay text
                     overlayElement.style.color = '#99EA7B'; // Set color
-                    overlayElement.style.display = 'flex'; // TK: Attempt Fix
-                    // overlayElement.style.visibility = 'visible';
-                    // overlayElement.style.pointerEvents = 'auto';
                 }
+
                 document.getElementById('solveButton').disabled = true;
             }
         }
@@ -669,14 +687,19 @@
             // If the shortcut overlay is open, do nothing
             if (shortcutOverlayOpen) return;
 
+            // BUG Introduced where pausing eliminates the Share Button; the Pause overlay and Game Won overlay should be decoupled.
             const overlayElement = document.getElementById('overlay');
             if (gamePaused) {
                 // Unpause the game
                 gamePaused = false;
                 if (overlayElement) {
                     overlayElement.style.display = 'none';
-                    overlayElement.style.color = '#99EA7B'; // Set color
-                    overlayElement.textContent = 'You Won!';
+
+                    const overlayTitle = document.getElementById('overlay-title');
+                    if (overlayTitle) {
+                        overlayTitle.textContent = 'You Won!'; // Set overlay text
+                        overlayTitle.style.color = '#99EA7B'; // Set color
+                    }
                 }
                 // Resume the timer
                 startTimer();
@@ -700,6 +723,59 @@
             }
         }
 
+        /**
+         * Generates a shareable URL containing the initial board state and copies it to the clipboard.
+         */
+         function shareGame() {
+            const currentUrl = window.location.origin + window.location.pathname;
+            const hexBoard = boardToHex(initialBoard);
+            const shareUrl = `${currentUrl}?board=${hexBoard}`;
+
+            // Calculate total score as sum of moves and time
+            const totalMoves = moveCount;
+            const totalTime = Math.floor(finalTime); // Round down to nearest second
+            const totalScore = totalMoves + totalTime;
+            
+            // Construct the shareable message
+            const shareMessage = `15-Puzzle Stats: ${totalScore} (${totalMoves} moves + ${totalTime}s)\nCan you beat ${totalScore}?\n${shareUrl}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(shareMessage).then(() => {
+                showTemporaryMessage("Copied to clipboard!");
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                showTemporaryMessage("Failed to copy the URL. Please copy it manually.");
+            });
+        }
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} message - The message to display.
+         */
+        function showTemporaryMessage(message) {
+            let messageDiv = document.getElementById('shareMessage');
+            if (!messageDiv) {
+                messageDiv = document.createElement('div');
+                messageDiv.id = 'shareMessage';
+                messageDiv.style.position = 'fixed';
+                messageDiv.style.top = '20px';
+                messageDiv.style.left = '50%';
+                messageDiv.style.transform = 'translateX(-50%)';
+                messageDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                messageDiv.style.color = '#fff';
+                messageDiv.style.padding = '10px 20px';
+                messageDiv.style.borderRadius = '5px';
+                messageDiv.style.zIndex = '1000';
+                document.body.appendChild(messageDiv);
+            }
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
         //newGame();
         initializeGame();
         updateFooterLinks();
