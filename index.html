@@ -74,7 +74,9 @@
             <p><b>Found a bug?</b> Submit an <a href="https://github.com/justinpobrien/quindici/issues" target="_blank">issue</a></p>
         </div>
     </div>
-   
+    <div id="shareMessage">
+        
+    </div>
     <script>
         let size = 4;
         let board = [];
@@ -757,6 +759,7 @@
          */
         function showTemporaryMessage(message) {
             let messageDiv = document.getElementById('shareMessage');
+            /*
             if (!messageDiv) {
                 messageDiv = document.createElement('div');
                 messageDiv.id = 'shareMessage';
@@ -771,6 +774,7 @@
                 messageDiv.style.zIndex = '1000';
                 document.body.appendChild(messageDiv);
             }
+            */
             messageDiv.textContent = message;
             messageDiv.style.display = 'block';
 
