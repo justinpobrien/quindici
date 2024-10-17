@@ -75,7 +75,7 @@
         </div>
     </div>
     <div id="shareMessage">
-        
+
     </div>
     <script>
         let size = 4;
@@ -744,13 +744,29 @@
             // Construct the shareable message
             const shareMessage = `15-Puzzle Stats: ${totalScore} (${totalMoves} moves + ${totalTime}s)\nCan you beat ${totalScore}?\n${shareUrl}`;
             
-            // Copy to clipboard
-            navigator.clipboard.writeText(shareMessage).then(() => {
-                showTemporaryMessage("Copied to clipboard!");
-            }).catch(err => {
-                console.error('Could not copy text: ', err);
-                showTemporaryMessage("Failed to copy the URL. Please copy it manually.");
-            });
+            if (navigator.share) {
+                // Web Share API is supported
+                navigator.share({
+                    title: '15-Puzzle Challenge',
+                    text: shareMessage,
+                    url: shareUrl,
+                })
+                .then(() => {
+                    showTemporaryMessage("Shared!");
+                })
+                .catch((error) => {
+                    console.error('Error sharing:', error);
+                    alert("Failed to share the game stats. Please try again.");
+                });
+            } else {
+                // Fallback: Copy to clipboard
+                navigator.clipboard.writeText(shareMessage).then(() => {
+                    showTemporaryMessage("Copied to clipboard!");
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert("Failed to copy the message. Please copy it manually.");
+                });
+            }
         }
 
         /**
