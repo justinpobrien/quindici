@@ -32,7 +32,6 @@
         <div class="board" id="board">
             <div id="tiles"></div>
 
-            <!-- TODO: UPDATE CSS -->
             <!-- Game Over Overlay -->
             <div id="gameOverOverlay" class="overlay" style="display: none;">
                 <div class="overlay-content">
@@ -72,18 +71,6 @@
                             <div class="shortcut">Open solver to find optimal solution</div>
                             <div class="shortcut">Open keyboard shortcut help</div>
                         </div>
-                        <!--
-                        <div class="shortcut"><span class="key">↑: </span>Shift tile up into empty space</div>
-                        <div class="shortcut"><span class="key">↓: </span>Shift tile down into empty space</div>
-                        <div class="shortcut"><span class="key">←: </span>Shift tile left into empty space</div>
-                        <div class="shortcut"><span class="key">→: </span>Shift tile right into empty space</div>
-                        <div class="shortcut"><span class="key">Shift+Arrow: </span>Move multiple tiles into empty space</div>
-                        <div class="shortcut"><span class="key">a: </span>New game</div>
-                        <div class="shortcut"><span class="key">s: </span>Solve step</div>
-                        <div class="shortcut"><span class="key">x: </span>Pause/unpause game</div>
-                        <div class="shortcut"><span class="key">f: </span>Open solver to find optimal solution</div>
-                        <div class="shortcut"><span class="key">?: </span>Open keyboard shortcut help</div>
-                        -->
                     </div>
                     <div>
                         <div class="close">
@@ -97,45 +84,18 @@
             <div id="pauseOverlay" class="overlay" style="display: none;">
                 <div class="overlay-content">
                     <h2>Game Paused</h2>
-                    <!--<button onclick="togglePauseGame()">Resume</button> // Rely on keyboard shortcut to trigger togglePauseGame() -->
                 </div>
             </div>
             
             <!-- Instructions Overlay -->
             <div id="instructionsOverlay" class="overlay" style="display: none;">
                 <div class="overlay-content">
-                    <h2>Welcome to Quindici!</h2>
-                    <p>Use the arrow keys or click tiles to solve the puzzle.</p>
+                    <h2>Welcome!</h2>
+                    <p>Arrange the tiles from 1 - 15. Click to move tiles or use arrow keys.</p>
+                    <p>Hit <span class="key">?</span> for keyboard shortcuts</p>
                     <button class="overlayButton" onclick="hideOverlay('instructionsOverlay')">Start Game</button>
                 </div>
             </div>
-
-            <!--
-            <div id="overlay" class="game-over-overlay">
-                <div id="overlay-title">You Won!</div>
-                <button id="shareButton" onclick="shareGame()">Share Game</button>
-            </div>
-
-            
-            <div id="shortcutOverlay" class="shortcut-overlay" style="display: none;">
-                <div class="overlay-content">
-                    <h2>Keyboard Shortcuts</h2>
-                    <div class="shortcut"><span class="key">↑: </span>Shift tile up into empty space</div>
-                    <div class="shortcut"><span class="key">↓: </span>Shift tile down into empty space</div>
-                    <div class="shortcut"><span class="key">←: </span>Shift tile left into empty space</div>
-                    <div class="shortcut"><span class="key">→: </span>Shift tile right into empty space</div>
-                    <div class="shortcut"><span class="key">Shift+Arrow: </span>Move multiple tiles into empty space</div>
-                    <div class="shortcut"><span class="key">a: </span>New game</div>
-                    <div class="shortcut"><span class="key">s: </span>Solve step</div>
-                    <div class="shortcut"><span class="key">x: </span>Pause/unpause game</div>
-                    <div class="shortcut"><span class="key">f: </span>Open solver to find optimal solution</div>
-                    <div class="shortcut"><span class="key">?: </span>Open keyboard shortcut help</div>
-                    <div class="close">
-                        <a href="#" onclick="toggleShortcutOverlay(); return false;" style="color: #f0d078; text-decoration: none;">Close</a>
-                    </div>
-                </div>
-            </div>
-            -->
 
         </div>
 
@@ -181,12 +141,7 @@
         function showOverlay(overlayId) {
             const overlay = document.getElementById(overlayId);
             if (overlay) {
-                // If another overlay is active, hide it first
-                /*
-                if (currentActiveOverlay && currentActiveOverlay !== overlayId) {
-                    hideOverlay(currentActiveOverlay);
-                }
-                */
+
                 hideAllOverlays();
 
                 // Show the desired overlay
@@ -269,10 +224,6 @@
                     if (newGameButton) {
                         newGameButton.disabled = true;
                     }
-
-                    // Optionally, start the timer if desired
-                    // startTimer();
-
                 } catch (error) {
                     console.error("Error initializing board from URL:", error);
                     alert("Invalid board state provided in URL. Starting a new game instead.");
@@ -300,18 +251,6 @@
 
             // Hide all overlays
             hideAllOverlays();
-
-            /*
-            const overlayElement = document.getElementById('overlay-title'); 
-            if (overlayElement) { 
-                overlayElement.textContent = 'You Won!'; // Reset overlay text
-            }
-
-            const overlayModal = document.getElementById('overlay');
-            if (overlayModal) { 
-                overlayModal.style.display = 'none'; // TK: Attempt Fix
-            }
-            */
 
             // Reset move counter and timer
             moveCount = 0;
@@ -511,7 +450,6 @@
             if (isGameWon()) {
                 gameWon = true;
                 renderBoard();
-                //stopTimer(); // Stop Timer
                 showOverlay('gameOverOverlay');
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
@@ -535,7 +473,6 @@
                 if (isGameWon()) {
                     gameWon = true;
                     renderBoard();
-                    //stopTimer(); // Stop Timer
                     showOverlay('gameOverOverlay');
                     document.getElementById('solveButton').disabled = true;
                     document.getElementById('newGameButton').disabled = false;
@@ -796,7 +733,6 @@
             if (isGameWon()) {
                 gameWon = true;
                 renderBoard();
-                //stopTimer();
                 showOverlay('gameOverOverlay');
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
@@ -875,22 +811,6 @@
          */
         function showTemporaryMessage(message) {
             let messageDiv = document.getElementById('shareMessage');
-            /*
-            if (!messageDiv) {
-                messageDiv = document.createElement('div');
-                messageDiv.id = 'shareMessage';
-                messageDiv.style.position = 'fixed';
-                messageDiv.style.top = '20px';
-                messageDiv.style.left = '50%';
-                messageDiv.style.transform = 'translateX(-50%)';
-                messageDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                messageDiv.style.color = '#fff';
-                messageDiv.style.padding = '10px 20px';
-                messageDiv.style.borderRadius = '5px';
-                messageDiv.style.zIndex = '1000';
-                document.body.appendChild(messageDiv);
-            }
-            */
             messageDiv.textContent = message;
             messageDiv.style.display = 'block';
 
@@ -900,7 +820,6 @@
             }, 3000);
         }
 
-        //newGame();
         initializeGame();
         updateFooterLinks();
     </script>

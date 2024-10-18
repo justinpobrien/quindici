@@ -141,6 +141,13 @@ h2 {
     overflow: auto; /* Allow scrolling within overlay if content exceeds */
 }
 
+.overlay p {
+    font-family: "Clear Sans", sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    /*font-size: 1.5em;  Responsive font size */
+}
+
 .overlay h2 {
     font-family: "Clear Sans", sans-serif;
     font-weight: 600;
@@ -194,10 +201,10 @@ h2 {
     align-items: flex-start;
 }
 
-#shortcutOverlay .key {
+.key {
     color: #EACF7B;
     font-weight: bold;
-    margin-right: 1em;
+    margin: 0em 0.5em;
 }
 
 #shortcutOverlay .close a {
@@ -318,23 +325,9 @@ button {
 }
 
 .overlayButton {
-    /* Share Button */
     font-size: 0.75em;
     padding: 0.7em 1.4em;
-    /*
-    border-radius: 10px;
-    */
-
     background-color: #4CAF50;
-
-    /*
-    color:#fff;
-    border: none;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    */
 }
 
 .overlayButton:hover {
