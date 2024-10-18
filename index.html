@@ -470,6 +470,11 @@
                 moveCount++;
                 updateMoveCounter();
 
+                // Do not allow timer to be bypassed
+                if (!timerInterval) {
+                    startTimer();
+                }
+
                 if (isGameWon()) {
                     gameWon = true;
                     renderBoard();
