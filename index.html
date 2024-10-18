@@ -448,12 +448,16 @@
 
 
             if (isGameWon()) {
-                gameWon = true;
-                renderBoard();
-                showOverlay('gameOverOverlay');
-                document.getElementById('solveButton').disabled = true;
-                document.getElementById('newGameButton').disabled = false;
+                endGame();
             }
+        }
+
+        function endGame() {
+            gameWon = true;
+            renderBoard();
+            showOverlay('gameOverOverlay');
+            document.getElementById('solveButton').disabled = true;
+            document.getElementById('newGameButton').disabled = false;
         }
 
         function solveStep() {
@@ -476,11 +480,7 @@
                 }
 
                 if (isGameWon()) {
-                    gameWon = true;
-                    renderBoard();
-                    showOverlay('gameOverOverlay');
-                    document.getElementById('solveButton').disabled = true;
-                    document.getElementById('newGameButton').disabled = false;
+                    endGame();
                 }
             }
         }
@@ -736,11 +736,7 @@
             }
 
             if (isGameWon()) {
-                gameWon = true;
-                renderBoard();
-                showOverlay('gameOverOverlay');
-                document.getElementById('solveButton').disabled = true;
-                document.getElementById('newGameButton').disabled = false;
+                endGame();
             }
         }
 
