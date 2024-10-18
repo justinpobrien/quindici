@@ -218,8 +218,9 @@
                     initialBoard = boardArray.slice(); // Set initialBoard to the provided board
                     renderBoard();
                     document.getElementById('solveButton').disabled = false;
+                    showOverlay('instructionsOverlay'); // TK Notify user that board state was shared?
 
-                    // Disable the "New Game" button to prevent shuffling
+                    // Disable the "New Game" button to prevent shuffling given board state was passed
                     const newGameButton = document.getElementById('newGameButton');
                     if (newGameButton) {
                         newGameButton.disabled = true;
@@ -404,24 +405,24 @@
                     board[emptyRow * size + i] = board[emptyRow * size + i - step];
                 }
                 board[emptyRow * size + col] = 0;
+                moveCount++; // Only increment if valid move
             } else if (col === emptyCol) {
                 const step = emptyRow > row ? 1 : -1;
                 for (let i = emptyRow; i !== row; i -= step) {
                     board[i * size + emptyCol] = board[(i - step) * size + emptyCol];
                 }
                 board[row * size + emptyCol] = 0;
+                moveCount++; // Only increment if valid move
             }
             renderBoard();
 
             // Add counter
-            moveCount++;
             updateMoveCounter();
 
             // Add timer
             if (!timerInterval) {
                 startTimer();
             }
-
 
             if (isGameWon()) {
                 endGame();
