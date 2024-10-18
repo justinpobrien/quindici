@@ -202,8 +202,9 @@
                     pauseTimer();
                 } else if (overlayId === 'instructionsOverlay') {
                     pauseTimer();
+                } else if (overlayId == 'gameOverOverlay') {
+                    stopTimer();
                 }
-                // Note: 'gameOverOverlay' does not pause the game since the game has ended
             }
         }
 
@@ -327,12 +328,6 @@
             if (newGameButton) {
                 newGameButton.disabled = false;
             }
-
-            // Reset the "Share" button
-            //const shareButton = document.getElementById('shareButton');
-            //if (shareButton) {
-            //    shareButton.disabled = true;
-            //}
         }
 
         function shuffleBoard() {
@@ -516,14 +511,8 @@
             if (isGameWon()) {
                 gameWon = true;
                 renderBoard();
-                stopTimer(); // Stop Timer
+                //stopTimer(); // Stop Timer
                 showOverlay('gameOverOverlay');
-                /* Comment out for now TK
-                const overlayElement = document.getElementById('overlay');
-                if (overlayElement) {
-                    overlayElement.style.display = 'flex';
-                }
-                */
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
             }
@@ -546,14 +535,8 @@
                 if (isGameWon()) {
                     gameWon = true;
                     renderBoard();
-                    stopTimer(); // Stop Timer
+                    //stopTimer(); // Stop Timer
                     showOverlay('gameOverOverlay');
-                    /*
-                    const overlayElement = document.getElementById('overlay');
-                    if (overlayElement) {
-                        overlayElement.style.display = 'flex';
-                    }
-                    */
                     document.getElementById('solveButton').disabled = true;
                     document.getElementById('newGameButton').disabled = false;
                 }
@@ -813,22 +796,8 @@
             if (isGameWon()) {
                 gameWon = true;
                 renderBoard();
-                stopTimer();
+                //stopTimer();
                 showOverlay('gameOverOverlay');
-
-                /*
-                const overlayModal = document.getElementById('overlay');
-                if (overlayModal) {
-                    overlayModal.style.display = 'flex'; // TK: Attempt Fix
-                }
-
-                const overlayElement = document.getElementById('overlay-title');
-                if (overlayElement) {
-                    overlayElement.textContent = 'You Won!'; // Set overlay text
-                    overlayElement.style.color = '#99EA7B'; // Set color
-                }
-                */
-
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
             }
@@ -843,27 +812,6 @@
             }
         }
 
-        /* Comment out for now
-        function toggleShortcutOverlay() {
-            const overlayElement = document.getElementById('shortcutOverlay');
-            if (shortcutOverlayOpen) {
-                // Close the overlay
-                shortcutOverlayOpen = false;
-                overlayElement.style.display = 'none';
-                // Resume the game if it was not paused
-                if (!gamePaused) {
-                    startTimer();
-                }
-            } else {
-                // Open the overlay
-                shortcutOverlayOpen = true;
-                overlayElement.style.display = 'flex';
-                // Pause the timer
-                pauseTimer();
-            }
-        }
-        */
-
         // Toggle Pause Overlay
         function togglePauseGame() {
             if (currentActiveOverlay === 'pauseOverlay') {
@@ -872,41 +820,6 @@
                 showOverlay('pauseOverlay');
             }
         }
-
-        /* Comment out for now
-        function togglePauseGame() {
-            // If the shortcut overlay is open, do nothing
-            if (shortcutOverlayOpen) return;
-
-            // BUG Introduced where pausing eliminates the Share Button; the Pause overlay and Game Won overlay should be decoupled.
-            const overlayElement = document.getElementById('overlay');
-            if (gamePaused) {
-                // Unpause the game
-                gamePaused = false;
-                if (overlayElement) {
-                    overlayElement.style.display = 'none';
-
-                    const overlayTitle = document.getElementById('overlay-title');
-                    if (overlayTitle) {
-                        overlayTitle.textContent = 'You Won!'; // Set overlay text
-                        overlayTitle.style.color = '#99EA7B'; // Set color
-                    }
-                }
-                // Resume the timer
-                startTimer();
-            } else {
-                // Pause the game
-                gamePaused = true;
-                if (overlayElement) {
-                    overlayElement.textContent = 'Game Paused';
-                    overlayElement.style.color = '#D3A15A'; // Set color
-                    overlayElement.style.display = 'flex';
-                }
-                // Pause the timer
-                pauseTimer();
-            }
-        }
-        */
 
         function openSolverLink() {
             const solverLink = document.getElementById('solverLink');
