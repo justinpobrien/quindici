@@ -211,7 +211,7 @@
             if (hexString) {
                 try {
                     const boardArray = hexToBoard(hexString);
-                    if (!isBoardSolvable(boardArray)) {
+                    if (!isSolvable(boardArray)) {
                         throw new Error("The provided board state is not solvable.");
                     }
                     board = boardArray;
@@ -297,11 +297,11 @@
 
         /**
          * Checks if the provided board array is solvable.
-         * @param {Array} boardArray - The board state array.
+         * If no board array is provided, it uses the global `board` array.
+         * @param {Array} [boardArray=board] - The board state array.
          * @returns {boolean} - True if solvable, else false.
-         * MERGE WITH isSolvable()
          */
-        function isBoardSolvable(boardArray) {
+        function isSolvable(boardArray = board) {
             let inversionCount = 0;
             const boardLength = boardArray.length;
 
@@ -326,30 +326,6 @@
             }
         }
 
-        function isSolvable() {
-            let inversionCount = 0;
-            const boardLength = board.length;
-
-            // Step 1: Count Inversions
-            for (let i = 0; i < boardLength; i++) {
-                for (let j = i + 1; j < boardLength; j++) {
-                    if (board[i] !== 0 && board[j] !== 0 && board[i] > board[j]) {
-                        inversionCount++;
-                    }
-                }
-            }
-
-            // Step 2: Locate the Blank Tile (0)
-            const blankIndex = board.indexOf(0);
-            const blankRowFromBottom = size - Math.floor(blankIndex / size);
-
-            // Step 3: Apply Solvability Rules
-            if (size % 2 === 1) {
-                return inversionCount % 2 === 0;
-            } else {
-                return (inversionCount + blankRowFromBottom) % 2 === 1;
-            }
-        }
 
         /**
          * Converts the board state array to a hexadecimal string.
