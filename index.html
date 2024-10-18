@@ -606,6 +606,15 @@
                 return;
             }
 
+            // Handle Escape key to close active overlay
+            if (event.key === 'Escape') {
+                if (currentActiveOverlay && currentActiveOverlay != 'gameOverOverlay') {
+                    hideOverlay(currentActiveOverlay);
+                    event.preventDefault();
+                    return;
+                }
+            }
+
             // If the shortcut overlay is open, ignore other key presses
             if (shortcutOverlayOpen) return;
 
