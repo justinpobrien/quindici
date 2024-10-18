@@ -31,12 +31,92 @@
         <h2>The Classic 15-Puzzle Built by AI</h2>
         <div class="board" id="board">
             <div id="tiles"></div>
-            <div id="overlay" class="game-over-overlay">
-                <div id="overlay-title">You Won!</div>
-                <button id="shareButton" onclick="shareGame()">Share Game</button> <!-- New Share Button -->
+
+            <!-- TODO: UPDATE CSS -->
+            <!-- Game Over Overlay -->
+            <div id="gameOverOverlay" class="overlay" style="display: none;">
+                <div class="overlay-content">
+                    <h2>You Won!</h2>
+                    <button class="overlayButton" onclick="shareGame()">Share Game</button>
+                </div>
+            </div>
+            
+            <!-- Shortcut Help Overlay -->
+            <div id="shortcutOverlay" class="overlay" style="display: none;">
+                <div class="overlay-content">
+                    <div>
+                        <h2>Keyboard Shortcuts</h2>
+                    </div>
+                    <div class="shortcutList">
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px;">
+                            <div class="shortcut"><span class="key">↑: </span></div>
+                            <div class="shortcut"><span class="key">↓: </span></div>
+                            <div class="shortcut"><span class="key">←: </span></div>
+                            <div class="shortcut"><span class="key">→: </span></div>
+                            <div class="shortcut"><span class="key">Shift+→: </span></div>
+                            <div class="shortcut"><span class="key">a: </span></div>
+                            <div class="shortcut"><span class="key">s: </span></div>
+                            <div class="shortcut"><span class="key">x: </span></div>
+                            <div class="shortcut"><span class="key">f: </span></div>
+                            <div class="shortcut"><span class="key">?: </span></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 10px;">
+                            <div class="shortcut">Shift tile up into empty space</div>
+                            <div class="shortcut">Shift tile down into empty space</div>
+                            <div class="shortcut">Shift tile left into empty space</div>
+                            <div class="shortcut">Shift tile right into empty space</div>
+                            <div class="shortcut">Move multiple tiles into empty space</div>
+                            <div class="shortcut">New game</div>
+                            <div class="shortcut">Solve step</div>
+                            <div class="shortcut">Pause/unpause game</div>
+                            <div class="shortcut">Open solver to find optimal solution</div>
+                            <div class="shortcut">Open keyboard shortcut help</div>
+                        </div>
+                        <!--
+                        <div class="shortcut"><span class="key">↑: </span>Shift tile up into empty space</div>
+                        <div class="shortcut"><span class="key">↓: </span>Shift tile down into empty space</div>
+                        <div class="shortcut"><span class="key">←: </span>Shift tile left into empty space</div>
+                        <div class="shortcut"><span class="key">→: </span>Shift tile right into empty space</div>
+                        <div class="shortcut"><span class="key">Shift+Arrow: </span>Move multiple tiles into empty space</div>
+                        <div class="shortcut"><span class="key">a: </span>New game</div>
+                        <div class="shortcut"><span class="key">s: </span>Solve step</div>
+                        <div class="shortcut"><span class="key">x: </span>Pause/unpause game</div>
+                        <div class="shortcut"><span class="key">f: </span>Open solver to find optimal solution</div>
+                        <div class="shortcut"><span class="key">?: </span>Open keyboard shortcut help</div>
+                        -->
+                    </div>
+                    <div>
+                        <div class="close">
+                            <a href="#" onclick="hideOverlay('shortcutOverlay')">Close</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pause Overlay -->
+            <div id="pauseOverlay" class="overlay" style="display: none;">
+                <div class="overlay-content">
+                    <h2>Game Paused</h2>
+                    <!--<button onclick="togglePauseGame()">Resume</button> // Rely on keyboard shortcut to trigger togglePauseGame() -->
+                </div>
+            </div>
+            
+            <!-- Instructions Overlay -->
+            <div id="instructionsOverlay" class="overlay" style="display: none;">
+                <div class="overlay-content">
+                    <h2>Welcome to Quindici!</h2>
+                    <p>Use the arrow keys or click tiles to solve the puzzle.</p>
+                    <button class="overlayButton" onclick="hideOverlay('instructionsOverlay')">Start Game</button>
+                </div>
             </div>
 
-            <!-- Keyboard Shortcuts Overlay -->
+            <!--
+            <div id="overlay" class="game-over-overlay">
+                <div id="overlay-title">You Won!</div>
+                <button id="shareButton" onclick="shareGame()">Share Game</button>
+            </div>
+
+            
             <div id="shortcutOverlay" class="shortcut-overlay" style="display: none;">
                 <div class="overlay-content">
                     <h2>Keyboard Shortcuts</h2>
@@ -55,6 +135,7 @@
                     </div>
                 </div>
             </div>
+            -->
 
         </div>
 
@@ -92,6 +173,76 @@
         let startTime = null;
         let elapsedTime = 0; // Modified to keep track of elapsed time
         let finalTime = 0;
+        let currentActiveOverlay = null; // Tracks the currently active overlay
+        let shortcutOverlayOpen = false; // Variable to track if shortcut overlay is open
+
+
+        // Overlay Management Functions
+        function showOverlay(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            if (overlay) {
+                // If another overlay is active, hide it first
+                /*
+                if (currentActiveOverlay && currentActiveOverlay !== overlayId) {
+                    hideOverlay(currentActiveOverlay);
+                }
+                */
+                hideAllOverlays();
+
+                // Show the desired overlay
+                overlay.style.display = 'flex';
+                currentActiveOverlay = overlayId;
+
+                // Manage game state based on the overlay type
+                if (overlayId === 'shortcutOverlay') {
+                    shortcutOverlayOpen = true;
+                    pauseTimer();
+                } else if (overlayId === 'pauseOverlay') {
+                    gamePaused = true;
+                    pauseTimer();
+                } else if (overlayId === 'instructionsOverlay') {
+                    pauseTimer();
+                }
+                // Note: 'gameOverOverlay' does not pause the game since the game has ended
+            }
+        }
+
+        function hideOverlay(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            if (overlay && overlay.style.display !== 'none') {
+                overlay.style.display = 'none';
+
+                // Clear the active overlay if it matches
+                if (currentActiveOverlay === overlayId) {
+                    currentActiveOverlay = null;
+                }
+
+                // Manage game state based on the overlay type
+                if (overlayId === 'shortcutOverlay') {
+                    shortcutOverlayOpen = false;
+                    if (!gamePaused) {
+                        startTimer();
+                    }
+                } else if (overlayId === 'pauseOverlay') {
+                    gamePaused = false;
+                    startTimer();
+                } else if (overlayId === 'instructionsOverlay') {
+                    // startTimer();
+                }
+            }
+        }
+
+        // Utility function to hide all overlays
+        function hideAllOverlays() {
+            const overlays = document.querySelectorAll('.overlay');
+            overlays.forEach(overlay => {
+                overlay.style.display = 'none';
+            });
+            currentActiveOverlay = null;
+            shortcutOverlayOpen = false;
+            gamePaused = false;
+            startTimer();
+        }
 
 
         /**
@@ -129,6 +280,7 @@
             } else {
                 // No 'board' parameter; start a new game normally
                 newGame();
+                showOverlay('instructionsOverlay');
             }
         }
 
@@ -144,6 +296,11 @@
             solutionPath = [];
             renderBoard();
             document.getElementById('solveButton').disabled = false;
+
+            // Hide all overlays
+            hideAllOverlays();
+
+            /*
             const overlayElement = document.getElementById('overlay-title'); 
             if (overlayElement) { 
                 overlayElement.textContent = 'You Won!'; // Reset overlay text
@@ -153,6 +310,7 @@
             if (overlayModal) { 
                 overlayModal.style.display = 'none'; // TK: Attempt Fix
             }
+            */
 
             // Reset move counter and timer
             moveCount = 0;
@@ -359,10 +517,13 @@
                 gameWon = true;
                 renderBoard();
                 stopTimer(); // Stop Timer
+                showOverlay('gameOverOverlay');
+                /* Comment out for now TK
                 const overlayElement = document.getElementById('overlay');
                 if (overlayElement) {
                     overlayElement.style.display = 'flex';
                 }
+                */
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
             }
@@ -386,10 +547,13 @@
                     gameWon = true;
                     renderBoard();
                     stopTimer(); // Stop Timer
+                    showOverlay('gameOverOverlay');
+                    /*
                     const overlayElement = document.getElementById('overlay');
                     if (overlayElement) {
                         overlayElement.style.display = 'flex';
                     }
+                    */
                     document.getElementById('solveButton').disabled = true;
                     document.getElementById('newGameButton').disabled = false;
                 }
@@ -528,8 +692,6 @@
             return array.join(',');
         }
 
-        // Variable to track if shortcut overlay is open
-        let shortcutOverlayOpen = false;
 
         document.addEventListener('keydown', handleKeydown);
 
@@ -652,6 +814,9 @@
                 gameWon = true;
                 renderBoard();
                 stopTimer();
+                showOverlay('gameOverOverlay');
+
+                /*
                 const overlayModal = document.getElementById('overlay');
                 if (overlayModal) {
                     overlayModal.style.display = 'flex'; // TK: Attempt Fix
@@ -662,6 +827,7 @@
                     overlayElement.textContent = 'You Won!'; // Set overlay text
                     overlayElement.style.color = '#99EA7B'; // Set color
                 }
+                */
 
                 document.getElementById('solveButton').disabled = true;
                 document.getElementById('newGameButton').disabled = false;
@@ -669,6 +835,15 @@
         }
 
         // Function to toggle the keyboard shortcuts overlay
+        function toggleShortcutOverlay() {
+            if (shortcutOverlayOpen) { // if (currentActiveOverlay === 'shortcutOverlay') {
+                hideOverlay('shortcutOverlay');
+            } else {
+                showOverlay('shortcutOverlay');
+            }
+        }
+
+        /* Comment out for now
         function toggleShortcutOverlay() {
             const overlayElement = document.getElementById('shortcutOverlay');
             if (shortcutOverlayOpen) {
@@ -687,7 +862,18 @@
                 pauseTimer();
             }
         }
+        */
 
+        // Toggle Pause Overlay
+        function togglePauseGame() {
+            if (currentActiveOverlay === 'pauseOverlay') {
+                hideOverlay('pauseOverlay');
+            } else {
+                showOverlay('pauseOverlay');
+            }
+        }
+
+        /* Comment out for now
         function togglePauseGame() {
             // If the shortcut overlay is open, do nothing
             if (shortcutOverlayOpen) return;
@@ -720,6 +906,7 @@
                 pauseTimer();
             }
         }
+        */
 
         function openSolverLink() {
             const solverLink = document.getElementById('solverLink');
@@ -799,6 +986,7 @@
                 messageDiv.style.display = 'none';
             }, 3000);
         }
+
         //newGame();
         initializeGame();
         updateFooterLinks();
