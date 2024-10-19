@@ -250,10 +250,22 @@
         endGame() {
             this.gameWon = true;
             this.renderBoard();
+            this.stopTimer();
+
+            // Calculate stats
+            const totalMoves = this.moveCount;
+            const totalTime = Math.floor(this.finalTime);
+            const totalScore = totalMoves + totalTime;
+
+            // Update the stats in the overlay
+            document.getElementById('scoreValue').innerText = totalScore;
+            document.getElementById('movesValue').innerText = totalMoves;
+            document.getElementById('timeValue').innerText = totalTime + 's';
+
             OverlayManager.show('gameOverOverlay');
             document.getElementById('solveButton').disabled = true;
             document.getElementById('newGameButton').disabled = false;
-            this.stopTimer();
+            
         }
 
         // Performs a solve step

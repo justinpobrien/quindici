@@ -228,8 +228,38 @@ h2 {
 /* Specific styles for Game Over Overlay */
 #gameOverOverlay .overlay-content h2 {
     color: #99EA7B;
-    margin-bottom: 1em;
-    /* Additional styles if needed */
+}
+
+#gameOverOverlay .overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2em; /* Space between shortcuts */
+}
+
+#scoreValue, #movesValue, #timeValue {
+    font-weight: 200;
+    font-style: normal;
+}
+
+.stats {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0px;
+    gap: 45px;
+    color: #fff;
+}
+
+.stats div > div:first-child {
+    font-size: 2em;
+    text-align: center;
+}
+
+.stats div > div:last-child {
+    text-align: center;
 }
 
 #shortcutOverlay .overlay-content {
