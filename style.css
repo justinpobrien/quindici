@@ -105,7 +105,9 @@ h2 {
 .board {
     width: 100%;
     max-width: 500px;
-    min-height: 500px;
+    max-height: auto;
+    min-width: 350px;
+    min-height: 350px;
     margin: 0 auto;
     background-color: #B9AEA1;
     border-radius: 10px;
