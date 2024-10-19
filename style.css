@@ -65,6 +65,7 @@ body {
     margin: 0;
     background-color: #F9F6E9;
     overflow: hidden;        /* Prevent any scrolling */
+    touch-action: manipulation;
 }
 
 /* Header styles */
