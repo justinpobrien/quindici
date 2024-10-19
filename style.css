@@ -64,7 +64,7 @@ body {
     height: 100vh;           /* Full viewport height */
     margin: 0;
     background-color: #F9F6E9;
-    overflow: hidden;        /* Prevent any scrolling */
+    /* overflow: hidden; */
     touch-action: manipulation;
 }
 
@@ -91,33 +91,97 @@ h2 {
     text-align: center;
     width: 90vw;
     max-width: 500px;
-    max-height: 90vh; /* Ensure it doesn't exceed viewport height */
+    max-height: auto; /* 90vh; */
     margin: auto;
     padding: 0px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden; /* Prevent internal scrolling */
+    /* overflow: hidden; /* Prevent internal scrolling */
 }
 
 /* Board styles */
 .board {
-    position: relative; /* Ensure overlays are positioned relative to board */
-    margin: 0 auto 10px auto;
+    width: 100%;
+    max-width: 500px;
+    min-height: 500px;
+    margin: 0 auto;
     background-color: #B9AEA1;
-    padding: var(--board-padding); /* Use CSS variable */
     border-radius: 10px;
     border: 3px solid #000;
-    width: 100%;
-    aspect-ratio: 1 / 1; /* Make the board square */
     box-sizing: border-box;
-    font-size: 1em; /* Relative to .game-container */
-    flex: 1 1 auto; /* Allow the board to expand and shrink */
+    position: relative;
+    /* padding-top: 100%; /* Maintains 1:1 aspect ratio */
+
+    /* Modern browsers will use aspect-ratio */
+    aspect-ratio: 1 / 1;
+
+    
+
+}
+
+.board > * {
+    position: absolute;
+    top: 0; /* Changed from var(--board-padding) */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--board-padding);
+    background-color: inherit;
+    border-radius: inherit;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Vertically centers tiles */
+    justify-content: center;
+    box-sizing: border-box;
 }
+
+/* Tiles container styles */
+#tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr); /* Define rows explicitly */
+    gap: var(--tile-gap); /* Use CSS variable for gap */
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Tile styles */
+.tile {
+    width: 100%;
+    height: 100%; /* Added */
+    position: relative;
+    background-color: #ECE0CA;
+    color: #766E66;
+    font-size: 3em; /* Increased font size */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.tile > span {
+    /* Center the number using Flexbox */
+    position: static; /* Removed absolute positioning */
+    transform: none;
+}
+
+/* Empty tile styles */
+.empty {
+    background-color: #C9BCAD;
+    box-shadow: none;
+}
+
+/* Disabled tile styles */
+.disabled {
+    background-color: #E4E4E4;
+    color: #969696;
+}
+
+
 
 /* Overlay styles confined within the board */
 .overlay {
@@ -218,11 +282,13 @@ h2 {
 
 /* Status Bar Styles */
 .status-bar {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px; /* Space below the status bar */
     font-size: 1em; /* Relative to .game-container */
+    box-sizing: border-box;
 }
 
 .move-counter, .timer {
@@ -239,52 +305,6 @@ h2 {
     flex-wrap: wrap; /* Allow buttons to wrap if space is limited */
 }
 
-/* Tiles container styles */
-#tiles {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr); /* Define rows explicitly */
-    gap: var(--tile-gap); /* Use CSS variable for gap */
-    width: 100%;
-    height: calc(100% - var(--total-padding) - var(--total-gap)); /* 100% - 4% padding - 6% gaps = 90% */
-    flex: 1 1 auto; /* Allow tiles to expand */
-    overflow: hidden; /* Prevent tiles from overflowing */
-}
-
-/* Tile styles */
-.tile {
-    width: 100%;
-    /* Removed aspect-ratio: 1 / 1; */
-    position: relative;
-    background-color: #ECE0CA;
-    color: #766E66;
-    font-size: 3em; /* Increased font size */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-    box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.25);
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
-}
-
-.tile > span {
-    /* Center the number using Flexbox */
-    position: static; /* Removed absolute positioning */
-    transform: none;
-}
-
-
-/* Empty tile styles */
-.empty {
-    background-color: #C9BCAD;
-    box-shadow: none;
-}
-
-/* Disabled tile styles */
-.disabled {
-    background-color: #E4E4E4;
-    color: #969696;
-}
 
 /* Footer styles */
 .footer {
@@ -380,7 +400,7 @@ button:disabled {
         font-family: var(--font-family);
         font-weight: var(--font-weight);
         display: inline;
-        height: 100vh;           /* Full viewport height */
+        /*height: 100vh;           /* Full viewport height */
         margin: 0;
         background-color: var(--background-color);
         overflow: hidden;        /* Prevent any scrolling */
@@ -388,7 +408,6 @@ button:disabled {
 
     .game-container {
         width: 95vw;
-        max-width: none;
         max-height: 95vh; /* Slightly larger max-height for medium screens */
     }
 
