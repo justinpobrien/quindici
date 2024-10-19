@@ -442,13 +442,20 @@
             }
             if (event.key === 'Escape') {
                 if (OverlayManager.currentOverlay && OverlayManager.currentOverlay !== 'gameOverOverlay') {
-                    OverlayManager.hide(OverlayManager.currentOverlay);
+                    if (OverlayManager.currentOverlay === 'shortcutOverlay') {
+                        this.toggleShortcutOverlay();
+                    } else if (OverlayManager.currentOverlay === 'pauseOverlay') {
+                        this.togglePauseGame();
+                    } else {
+                        OverlayManager.hide(OverlayManager.currentOverlay);
+                    }
                     event.preventDefault();
                     return true;
                 }
             }
             return false;
         }
+        
 
         // Handles pause key events
         handlePauseKey(event) {
@@ -571,7 +578,7 @@
 
         // Toggles the pause overlay
         togglePauseGame() {
-            if (OverlayManager.currentOverlay === 'pauseOverlay') {
+            if (this.gamePaused) { // if (OverlayManager.currentOverlay === 'pauseOverlay')
                 OverlayManager.hide('pauseOverlay');
                 this.gamePaused = false;
                 this.startTimer();
@@ -654,13 +661,19 @@
             });
 
             // Close overlay links
-            const closeLinks = document.querySelectorAll('.close a');
+            const closeLinks = document.querySelectorAll('.close button');
             closeLinks.forEach(link => {
                 link.addEventListener('click', (event) => {
                     event.preventDefault();
                     const overlayId = event.target.getAttribute('data-overlay');
                     if (overlayId) {
-                        OverlayManager.hide(overlayId);
+                        if (overlayId === 'shortcutOverlay') {
+                            this.toggleShortcutOverlay();
+                        } else if (overlayId === 'pauseOverlay') {
+                            this.togglePauseGame();
+                        } else {
+                            OverlayManager.hide(overlayId);
+                        }
                     }
                 });
             });
