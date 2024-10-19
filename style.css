@@ -198,7 +198,7 @@ h2 {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 1.5em;  /* Relative font size */
+    /* font-size: 1.5em;   Relative font size */
     z-index: 10;
     padding: 5%; /* 10px */
     gap: 10%;/* 44px; */
@@ -220,7 +220,7 @@ h2 {
     font-family: "Clear Sans", sans-serif;
     font-weight: 600;
     font-style: normal;
-    font-size: 1.5em; /* Responsive font size */
+    /* font-size: 1.5em; */
     color: #F39C12;
     opacity: 1;
     margin-top: 0;
@@ -251,7 +251,7 @@ h2 {
     justify-content: center;
     align-items: flex-start;
     padding: 0px;
-    gap: 45px;
+    gap: 2em;
     color: #fff;
 }
 
@@ -274,7 +274,7 @@ h2 {
     width: 100%;
     color: #ffffff;
     opacity: 1;
-    font-size: 0.7em; /* Relative to overlay's font-size */
+    /* font-size: 0.7em; Relative to overlay's font-size */
     /* word-wrap: break-word;  Allow text to wrap */
     
 }
