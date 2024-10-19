@@ -490,7 +490,7 @@
         handleTileMovement(event) {
             if (this.gamePaused || this.shortcutOverlayOpen) return;
 
-            const emptyIndex = this.board.indexOf(0);
+            let emptyIndex = this.board.indexOf(0);
             const row = Math.floor(emptyIndex / this.size);
             const col = emptyIndex % this.size;
             let targetRow = row;
