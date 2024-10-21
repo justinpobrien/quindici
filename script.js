@@ -171,13 +171,23 @@
             }
         }
 
+        vibrateOnTouch() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50); // Vibrate for 50 milliseconds
+            } else {
+                console.log('Vibration API not supported on this device.');
+            }
+        }
+        
+    
+
         // Renders the board
         renderBoard() {
             const boardElement = document.getElementById('board');
             const tilesElement = document.getElementById('tiles');
             tilesElement.innerHTML = '';
             boardElement.style.backgroundColor = this.gameWon ? '#ADADAD' : '#B9AEA1';
-
+        
             this.board.forEach((value, i) => {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
@@ -191,8 +201,14 @@
                     span.textContent = value;
                     tile.appendChild(span);
                     if (!this.gameWon) {
-                        tile.addEventListener('click', () => this.moveTile(i));
-                        tile.addEventListener('touchstart', () => this.moveTile(i));
+                        tile.addEventListener('click', () => {
+                            this.moveTile(i);
+                            this.vibrateOnTouch();
+                        });
+                        tile.addEventListener('touchstart', () => {
+                            this.moveTile(i);
+                            this.vibrateOnTouch();
+                        });
                         tile.classList.remove('disabled');
                     } else {
                         tile.classList.add('disabled');
@@ -200,10 +216,10 @@
                 }
                 tilesElement.appendChild(tile);
             });
-
+        
             this.updateFooterLinks();
         }
-
+        
         // Checks if the game is won
         isGameWon() {
             return this.board.every((value, index) => value === this.goalState[index]);
@@ -563,6 +579,7 @@
             this.renderBoard();
             this.moveCount++;
             this.updateMoveCounter();
+            this.vibrateOnTouch();
 
             if (!this.timerInterval) {
                 this.startTimer();
