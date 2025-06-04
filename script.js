@@ -20,7 +20,6 @@
 
             // Animation state
             this.isAnimating = false;
-            this.lastMovedValue = null;
 
             // Timer and move counter
             this.moveCount = 0;
@@ -254,39 +253,64 @@
             }
         }
 
-        // Moves a tile with a shrink/pop animation
+        // Moves a tile with a sliding animation
         moveTile(index) {
             if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen || this.isAnimating) return;
 
             const tilesElement = document.getElementById('tiles');
-            const tileElement = tilesElement.children[index];
-            const value = this.board[index];
+            const emptyIndex = this.board.indexOf(0);
+            const row = Math.floor(index / this.size);
+            const col = index % this.size;
+            const emptyRow = Math.floor(emptyIndex / this.size);
+            const emptyCol = emptyIndex % this.size;
 
-            if (!tileElement || value === 0) return;
+            if (row !== emptyRow && col !== emptyCol) return;
+
+            const indicesToMove = [];
+            let step;
+            if (row === emptyRow) {
+                step = emptyCol > col ? 1 : -1;
+                for (let i = emptyIndex - step; step === 1 ? i >= index : i <= index; i -= step) {
+                    indicesToMove.push(i);
+                }
+            } else {
+                step = emptyRow > row ? 1 : -1;
+                for (let i = emptyIndex - step * this.size; step === 1 ? i >= index : i <= index; i -= step * this.size) {
+                    indicesToMove.push(i);
+                }
+            }
+
+            if (indicesToMove.length === 0) return;
 
             this.isAnimating = true;
-            this.lastMovedValue = value;
+            const duration = 120; // milliseconds
 
-            tileElement.classList.add('shrink');
-            tileElement.addEventListener('animationend', () => {
-                this.executeMoveLogic(index);
-                this.renderBoard();
+            indicesToMove.forEach(i => {
+                const tile = tilesElement.children[i];
+                const neighbor = row === emptyRow
+                    ? tilesElement.children[i + step]
+                    : tilesElement.children[i + step * this.size];
+                if (!tile || !neighbor) return;
+                const dx = neighbor.offsetLeft - tile.offsetLeft;
+                const dy = neighbor.offsetTop - tile.offsetTop;
+                tile.style.transition = `transform ${duration}ms ease`;
+                tile.style.transform = `translate(${dx}px, ${dy}px)`;
+            });
 
-                const newTiles = document.querySelectorAll('#tiles .tile');
-                newTiles.forEach(t => {
-                    const span = t.querySelector('span');
-                    if (span && parseInt(span.textContent, 10) === this.lastMovedValue) {
-                        t.classList.add('pop');
-                        t.addEventListener('animationend', () => {
-                            t.classList.remove('pop');
-                        }, { once: true });
+            setTimeout(() => {
+                indicesToMove.forEach(i => {
+                    const tile = tilesElement.children[i];
+                    if (tile) {
+                        tile.style.transition = '';
+                        tile.style.transform = '';
                     }
                 });
 
-                this.lastMovedValue = null;
-                this.isAnimating = false;
-
+                this.executeMoveLogic(index);
+                this.renderBoard();
                 this.updateMoveCounter();
+
+                this.isAnimating = false;
 
                 if (!this.timerInterval) {
                     this.startTimer();
@@ -295,7 +319,7 @@
                 if (this.isGameWon()) {
                     this.endGame();
                 }
-            }, { once: true });
+            }, duration);
         }
 
         // Ends the game
