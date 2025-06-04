@@ -18,6 +18,9 @@
             this.gamePaused = false;
             this.solutionPath = [];
 
+            // Animation state
+            this.isAnimating = false;
+
             // Timer and move counter
             this.moveCount = 0;
             this.timerInterval = null;
@@ -225,9 +228,8 @@
             return this.board.every((value, index) => value === this.goalState[index]);
         }
 
-        // Moves a tile
-        moveTile(index) {
-            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen) return;
+        // Executes the board logic for moving a tile
+        executeMoveLogic(index) {
             const emptyIndex = this.board.indexOf(0);
             const row = Math.floor(index / this.size);
             const col = index % this.size;
@@ -249,17 +251,75 @@
                 this.board[row * this.size + emptyCol] = 0;
                 this.moveCount++;
             }
+        }
 
-            this.renderBoard();
-            this.updateMoveCounter();
+        // Moves a tile with a sliding animation
+        moveTile(index) {
+            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen || this.isAnimating) return;
 
-            if (!this.timerInterval) {
-                this.startTimer();
+            const tilesElement = document.getElementById('tiles');
+            const emptyIndex = this.board.indexOf(0);
+            const row = Math.floor(index / this.size);
+            const col = index % this.size;
+            const emptyRow = Math.floor(emptyIndex / this.size);
+            const emptyCol = emptyIndex % this.size;
+
+            if (row !== emptyRow && col !== emptyCol) return;
+
+            const indicesToMove = [];
+            let step;
+            if (row === emptyRow) {
+                step = emptyCol > col ? 1 : -1;
+                for (let i = emptyIndex - step; step === 1 ? i >= index : i <= index; i -= step) {
+                    indicesToMove.push(i);
+                }
+            } else {
+                step = emptyRow > row ? 1 : -1;
+                for (let i = emptyIndex - step * this.size; step === 1 ? i >= index : i <= index; i -= step * this.size) {
+                    indicesToMove.push(i);
+                }
             }
 
-            if (this.isGameWon()) {
-                this.endGame();
-            }
+            if (indicesToMove.length === 0) return;
+
+            this.isAnimating = true;
+            const duration = 120; // milliseconds
+
+            indicesToMove.forEach(i => {
+                const tile = tilesElement.children[i];
+                const neighbor = row === emptyRow
+                    ? tilesElement.children[i + step]
+                    : tilesElement.children[i + step * this.size];
+                if (!tile || !neighbor) return;
+                const dx = neighbor.offsetLeft - tile.offsetLeft;
+                const dy = neighbor.offsetTop - tile.offsetTop;
+                tile.style.transition = `transform ${duration}ms ease`;
+                tile.style.transform = `translate(${dx}px, ${dy}px)`;
+            });
+
+            setTimeout(() => {
+                indicesToMove.forEach(i => {
+                    const tile = tilesElement.children[i];
+                    if (tile) {
+                        tile.style.transition = '';
+                        tile.style.transform = '';
+                    }
+                });
+
+                this.executeMoveLogic(index);
+                this.renderBoard();
+                this.updateMoveCounter();
+
+                this.isAnimating = false;
+
+                if (!this.timerInterval) {
+                    this.startTimer();
+                }
+
+                if (this.isGameWon()) {
+                    this.endGame();
+                }
+            }, duration);
         }
 
         // Ends the game
