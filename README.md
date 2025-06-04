@@ -48,7 +48,7 @@ A board state can be passed as a URL parameter, enabling users to share specific
 
 The initial board state can be represented by an array. For example: `[15,0,14,13,3,6,8,5,12,2,7,4,11,9,10,1]`
 
-Which in turn can be represented as a hexidecimal string: `f0ed3685c274b9a1`
+Which in turn can be represented as a hexadecimal string: `f0ed3685c274b9a1`
 
 When passed as a URL parameter (`https://quindici.io/?board=f0ed3685c274b9a1`), it will render the board state:
 
