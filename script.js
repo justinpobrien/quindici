@@ -227,7 +227,10 @@
 
         // Moves a tile
         moveTile(index) {
-            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen) return;
+            // Disallow tile clicks when the game is paused, a shortcut overlay is
+            // open or the instructions overlay is visible
+            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen ||
+                OverlayManager.currentOverlay === 'instructionsOverlay') return;
             const emptyIndex = this.board.indexOf(0);
             const row = Math.floor(index / this.size);
             const col = index % this.size;
@@ -454,6 +457,11 @@
         handleKeydown(event) {
             if (this.gameWon) return;
 
+            // Ignore all key input while the instructions overlay is visible
+            if (OverlayManager.currentOverlay === 'instructionsOverlay') {
+                return;
+            }
+
             if (this.handleOverlayKeys(event)) return;
             if (this.handlePauseKey(event)) return;
             if (this.handleGameControls(event)) return;
@@ -516,7 +524,10 @@
 
         // Handles tile movement keys
         handleTileMovement(event) {
-            if (this.gamePaused || this.shortcutOverlayOpen) return;
+            // Prevent movement when paused, when shortcut overlay is open,
+            // or while the instructions overlay is shown
+            if (this.gamePaused || this.shortcutOverlayOpen ||
+                OverlayManager.currentOverlay === 'instructionsOverlay') return;
 
             let emptyIndex = this.board.indexOf(0);
             const row = Math.floor(emptyIndex / this.size);
