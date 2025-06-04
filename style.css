@@ -183,6 +183,34 @@ h2 {
     color: #969696;
 }
 
+/* Animation for tile shrink on press */
+.tile.shrink {
+    animation: tile-shrink 0.15s forwards;
+}
+
+@keyframes tile-shrink {
+    to {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+/* Animation for popping the tile into the new position */
+.tile.pop {
+    animation: tile-pop 0.15s forwards;
+}
+
+@keyframes tile-pop {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 
 
 /* Overlay styles confined within the board */

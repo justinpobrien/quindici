@@ -18,6 +18,10 @@
             this.gamePaused = false;
             this.solutionPath = [];
 
+            // Animation state
+            this.isAnimating = false;
+            this.lastMovedValue = null;
+
             // Timer and move counter
             this.moveCount = 0;
             this.timerInterval = null;
@@ -225,9 +229,8 @@
             return this.board.every((value, index) => value === this.goalState[index]);
         }
 
-        // Moves a tile
-        moveTile(index) {
-            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen) return;
+        // Executes the board logic for moving a tile
+        executeMoveLogic(index) {
             const emptyIndex = this.board.indexOf(0);
             const row = Math.floor(index / this.size);
             const col = index % this.size;
@@ -249,17 +252,50 @@
                 this.board[row * this.size + emptyCol] = 0;
                 this.moveCount++;
             }
+        }
 
-            this.renderBoard();
-            this.updateMoveCounter();
+        // Moves a tile with a shrink/pop animation
+        moveTile(index) {
+            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen || this.isAnimating) return;
 
-            if (!this.timerInterval) {
-                this.startTimer();
-            }
+            const tilesElement = document.getElementById('tiles');
+            const tileElement = tilesElement.children[index];
+            const value = this.board[index];
 
-            if (this.isGameWon()) {
-                this.endGame();
-            }
+            if (!tileElement || value === 0) return;
+
+            this.isAnimating = true;
+            this.lastMovedValue = value;
+
+            tileElement.classList.add('shrink');
+            tileElement.addEventListener('animationend', () => {
+                this.executeMoveLogic(index);
+                this.renderBoard();
+
+                const newTiles = document.querySelectorAll('#tiles .tile');
+                newTiles.forEach(t => {
+                    const span = t.querySelector('span');
+                    if (span && parseInt(span.textContent, 10) === this.lastMovedValue) {
+                        t.classList.add('pop');
+                        t.addEventListener('animationend', () => {
+                            t.classList.remove('pop');
+                        }, { once: true });
+                    }
+                });
+
+                this.lastMovedValue = null;
+                this.isAnimating = false;
+
+                this.updateMoveCounter();
+
+                if (!this.timerInterval) {
+                    this.startTimer();
+                }
+
+                if (this.isGameWon()) {
+                    this.endGame();
+                }
+            }, { once: true });
         }
 
         // Ends the game
