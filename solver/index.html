@@ -1,427 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>15-Puzzle Solver</title>
-    <!-- GIF.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body>
-    <h1>15-Puzzle Solver</h1>
-    <div class="input-container">
-        <label for="boardInput">Enter the board state as a formatted array</label><br>
-        <input type="text" id="boardInput" placeholder="[6, 1, 13, 2, 14, 15, 10, 3, 5, 8, 9, 4, 11, 0, 12, 7]">
-        <button id="validateButton" onclick="checkSolvability()" disabled>Validate Board</button>
-    </div>
-    <div id="board" class="board"></div>
-    <div id="result"></div>
-    <button id="solveButton" onclick="solveBoard()" style="display:none;">Solve</button>
-    <canvas id="boardCanvas" width="300" height="300"></canvas> <!-- Updated size -->
-    <div id="gifContainer"></div>
-    <a id="downloadButton" style="display: none;">Download GIF</a> <!-- Changed to <a> tag -->
-
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9VPWQYV9ZZ"></script>
     <script>
-        let solutionPath = [];
-        let currentStep = 0;
-        let isSolving = false; // Flag to prevent multiple solves
-        let initialBoard = []; // New variable to store the initial board
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-        /**
-         * Renders the board state to the DOM and optionally adds a frame to the GIF.
-         * @param {Array} board - The current board state.
-         * @param {boolean} isGifFrame - Whether to capture this render as a GIF frame.
-         * @param {number} highlightIndex - The index of the tile to highlight.
-         */
-        function renderBoard(board, isGifFrame = false, highlightIndex = -1) {
-            const boardDiv = document.getElementById("board");
-            boardDiv.innerHTML = "";
-            board.forEach((value, index) => {
-                const tile = document.createElement("div");
-                tile.classList.add("tile");
-                if (value === 0) {
-                    tile.classList.add("empty");
-                    tile.textContent = "";
-                } else {
-                    tile.textContent = value;
-                }
-                if (index === highlightIndex) {
-                    tile.classList.add("highlight");
-                }
-                boardDiv.appendChild(tile);
-            });
-
-            if (isGifFrame) {
-                renderToCanvas(board, highlightIndex);
-            }
-        }
-
-        /**
-         * Renders the board state to a hidden canvas for GIF creation.
-         * @param {Array} board - The current board state.
-         * @param {number} highlightIndex - The index of the tile to highlight.
-         */
-        function renderToCanvas(board, highlightIndex = -1) {
-            const canvas = document.getElementById("boardCanvas");
-            const ctx = canvas.getContext("2d", { willReadFrequently: true });
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const tileSize = 60;
-            const gap = 10;
-            const boardPadding = 15;
-
-            // Draw board background
-            ctx.fillStyle = "#6b5e55";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            board.forEach((value, index) => {
-                const row = Math.floor(index / 4);
-                const col = index % 4;
-                const x = boardPadding + col * (tileSize + gap);
-                const y = boardPadding + row * (tileSize + gap);
-
-                ctx.fillStyle = index === highlightIndex ? "#ffeb3b" : value === 0 ? "#d9c7b6" : "#e6d7c3";
-                ctx.fillRect(x, y, tileSize, tileSize);
-                ctx.strokeStyle = "#6b5e55";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, tileSize, tileSize);
-
-                if (value !== 0) {
-                    ctx.fillStyle = "#4b3f3b";
-                    ctx.font = "bold 30px Arial";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(value, x + tileSize / 2, y + tileSize / 2);
-                }
-            });
-        }
-
-        /**
-         * Determines if a given board state is solvable.
-         * @param {Array} board - The board state to check.
-         * @returns {boolean} - True if solvable, false otherwise.
-         */
-        function isSolvable(board) {
-            const size = 4;
-            let inversionCount = 0;
-            const boardLength = board.length;
-
-            for (let i = 0; i < boardLength; i++) {
-                for (let j = i + 1; j < boardLength; j++) {
-                    if (board[i] !== 0 && board[j] !== 0 && board[i] > board[j]) {
-                        inversionCount++;
-                    }
-                }
-            }
-
-            const blankIndex = board.indexOf(0);
-            if (blankIndex === -1) {
-                throw new Error("The board must contain a blank tile represented by 0.");
-            }
-
-            const blankRowFromBottom = size - Math.floor(blankIndex / size);
-
-            if (size % 2 === 1) {
-                return inversionCount % 2 === 0;
-            } else {
-                return (inversionCount + blankRowFromBottom) % 2 === 1;
-            }
-        }
-
-        /**
-         * Converts the board state array to a hexadecimal string.
-         * @param {Array} board - The board state array.
-         * @returns {string} - The hexadecimal representation of the board.
-         */
-        function boardToHex(board) {
-            return board.map(n => n.toString(16)).join('');
-        }
-
-        /**
-         * Converts a hexadecimal string to the board state array.
-         * @param {string} hexString - The hexadecimal representation of the board.
-         * @returns {Array} - The board state array.
-         */
-        function hexToBoard(hexString) {
-            if (hexString.length !== 16) {
-                throw new Error("Invalid hexadecimal string length. It should be 16 characters long.");
-            }
-            return hexString.split('').map(char => {
-                const value = parseInt(char, 16);
-                if (isNaN(value)) {
-                    throw new Error("Invalid character in hexadecimal string.");
-                }
-                return value;
-            });
-        }
-
-        // On page load, check for the 'board' parameter in the URL
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            const hexString = params.get('board');
-            if (hexString) {
-                try {
-                    const boardArray = hexToBoard(hexString);
-                    document.getElementById("boardInput").value = JSON.stringify(boardArray);
-                    checkSolvability();
-                } catch (error) {
-                    console.error("Error parsing board from URL:", error);
-                    alert("Invalid board parameter in URL.");
-                    // Re-enable the Validate button and input box in case they were disabled
-                    document.getElementById("validateButton").disabled = false;
-                    document.getElementById("boardInput").disabled = false;
-                }
-            }
-        };
-
-        /**
-         * Validates the input board and initializes the solving process if solvable.
-         */
-         function checkSolvability() {
-            const boardInput = document.getElementById("boardInput");
-            const validateButton = document.getElementById("validateButton");
-
-            // Disable the Validate button and input box
-            validateButton.disabled = true;
-            boardInput.disabled = true;
-
-            let board;
-
-            try {
-                board = JSON.parse(boardInput.value);
-                if (!Array.isArray(board) || board.length !== 16) {
-                    throw new Error();
-                }
-                const uniqueSet = new Set(board);
-                if (uniqueSet.size !== 16 || !uniqueSet.has(0)) {
-                    throw new Error();
-                }
-            } catch (error) {
-                document.getElementById("result").textContent = "Invalid board state. Please enter a valid list with exactly 16 unique numbers including 0.";
-                document.getElementById("result").className = "";
-                document.getElementById("solveButton").style.display = "none";
-                // Re-enable the Validate button and input box
-                validateButton.disabled = false;
-                boardInput.disabled = false;
-                return;
-            }
-
-            renderBoard(board);
-
-            const solvable = isSolvable(board);
-            const resultDiv = document.getElementById("result");
-            resultDiv.textContent = solvable ? "Solvable!" : "Unsolvable";
-            resultDiv.className = solvable ? "solvable" : "unsolvable";
-
-            if (solvable) {
-                // document.getElementById("solveButton").style.display = "inline-block";
-                initialBoard = board.slice(); // Store the initial board
-                // Run IDA* search asynchronously using a Web Worker
-                runIDAStarWorker(board.slice());
-            } else {
-                document.getElementById("solveButton").style.display = "none";
-                // Re-enable the Validate button and input box
-                validateButton.disabled = false;
-                boardInput.disabled = false;
-            }
-        }
-
-        /**
-         * Initializes a Web Worker to run the IDA* Search algorithm asynchronously.
-         * @param {Array} board - The initial board state.
-         */
-         function runIDAStarWorker(board) {
-            const validateButton = document.getElementById("validateButton");
-            const boardInput = document.getElementById("boardInput");
-
-            document.getElementById("result").textContent = "Solving...";
-            solutionPath = [];
-            currentStep = 0;
-
-            // Hide the Solve button until the solution is found
-            document.getElementById("solveButton").style.display = "none";
-
-            // Create a new Web Worker
-            const worker = new Worker('solverWorker.js');
-
-            // Listen for messages (solution path) from the worker
-            worker.onmessage = function(e) {
-                solutionPath = e.data;
-                if (solutionPath.length === 0) {
-                    document.getElementById("result").textContent = "No solution found.";
-                    document.getElementById("result").className = "unsolvable";
-                    document.getElementById("solveButton").style.display = "none";
-                } else {
-                    document.getElementById("result").textContent = `Solvable! Number of moves: ${solutionPath.length - 1}`;
-                    document.getElementById("result").className = "solvable";
-                    document.getElementById("solveButton").style.display = "inline-block";
-                }
-                // Re-enable the Validate button and input box
-                validateButton.disabled = false;
-                boardInput.disabled = false;
-                worker.terminate();
-            };
-
-            // Handle any errors from the worker
-            worker.onerror = function(error) {
-                console.error("Worker error:", error);
-                document.getElementById("result").textContent = "An error occurred during solving.";
-                document.getElementById("result").className = "unsolvable";
-                document.getElementById("solveButton").style.display = "none";
-                // Re-enable the Validate button and input box
-                validateButton.disabled = false;
-                boardInput.disabled = false;
-                worker.terminate();
-            };
-
-            // Send the initial board state to the worker
-            worker.postMessage(board);
-        }
-
-        /**
-         * Animates the solving process by iterating through the solution path.
-         */
-        async function solveBoard() {
-            if (solutionPath.length === 0) {
-                alert("No solution path available.");
-                return;
-            }
-
-            if (isSolving) {
-                alert("A solve operation is already in progress.");
-                return;
-            }
-
-            isSolving = true;
-
-            // Disable the Solve button to prevent multiple runs
-            const solveButton = document.getElementById("solveButton");
-            solveButton.disabled = true;
-            solveButton.textContent = "Solving...";
-
-            // Clear previous GIF frames and container
-            const gifContainer = document.getElementById('gifContainer');
-            gifContainer.innerHTML = '';
-
-            // Hide and reset the Download button
-            const downloadButton = document.getElementById('downloadButton');
-            downloadButton.style.display = 'none';
-            downloadButton.href = '#';
-            downloadButton.download = '';
-            downloadButton.textContent = 'Download GIF';
-
-            // Create a new GIF instance with compression settings
-            const gif = new GIF({
-                workers: 2,
-                quality: 10, // Adjusted for compression (lower is more compressed)
-                workerScript: 'gif.worker.js', // Error occurs if using https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js
-                width: 300,  // Updated width to match canvas
-                height: 300  // Updated height to match canvas
-            });
-
-            // Handle the 'finished' event to display the GIF and show Download button
-            gif.on('finished', function(blob) {
-                // Create a URL for the blob
-                const url = URL.createObjectURL(blob);
-
-                // Display the GIF
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = "Solution GIF";
-                img.style.marginTop = "20px";
-                gifContainer.appendChild(img);
-
-                // Configure the Download Button
-                downloadButton.style.display = 'inline-block'; // Make it visible
-                downloadButton.href = url;
-                downloadButton.download = boardToHex(initialBoard) + '.gif'; // Set the filename
-                downloadButton.textContent = 'Download GIF';
-
-                // Add event listener to revoke the object URL after download
-                downloadButton.addEventListener('click', function() {
-                    setTimeout(() => {
-                        URL.revokeObjectURL(downloadButton.href);
-                        downloadButton.href = '#';
-                        downloadButton.download = '';
-                        downloadButton.style.display = 'none';
-                        downloadButton.textContent = 'Download GIF';
-                    }, 100); // Delay to ensure the download starts
-                });
-
-                // Re-enable the Solve button
-                solveButton.disabled = false;
-                solveButton.textContent = "Solve";
-                isSolving = false;
-            });
-
-            // Handle any errors during GIF creation
-            gif.on('error', function(error) {
-                console.error("GIF.js error:", error);
-                alert("An error occurred while creating the GIF.");
-                // Re-enable the Solve button
-                solveButton.disabled = false;
-                solveButton.textContent = "Solve";
-                isSolving = false;
-            });
-
-            // Iterate through the solution path and add frames to the GIF
-            for (let step = 0; step < solutionPath.length; step++) {
-                if (step === 0) {
-                    // Initial state: highlight the first move
-                    const currentState = solutionPath[step];
-                    const nextState = solutionPath[step + 1];
-                    if (nextState) {
-                        const highlightIndex = currentState.findIndex(
-                            (value, index) => value !== nextState[index] && value !== 0
-                        );
-                        renderBoard(currentState, true, highlightIndex);
-                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay for compression
-                    } else {
-                        renderBoard(currentState, true);
-                        gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true });
-                    }
-                } else {
-                    const previousState = solutionPath[step - 1];
-                    const currentState = solutionPath[step];
-                    const highlightIndex = previousState.findIndex(
-                        (value, index) => value !== currentState[index] && value !== 0
-                    );
-
-                    // Highlight the tile before it is moved
-                    renderBoard(previousState, true, highlightIndex);
-                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay
-                    await delay(300); // Reduced delay for compression
-
-                    // Render the new state without highlighting
-                    renderBoard(currentState, true);
-                    gif.addFrame(document.getElementById('boardCanvas'), { delay: 300, copy: true }); // Reduced delay
-                }
-
-                await delay(300); // Reduced delay
-            }
-
-            // After all steps, render the GIF
-            try {
-                gif.render();
-            } catch (error) {
-                console.error("GIF.render() error:", error);
-                alert("An error occurred while rendering the GIF.");
-                // Re-enable the Solve button
-                solveButton.disabled = false;
-                solveButton.textContent = "Solve";
-                isSolving = false;
-            }
-        }
-
-        /**
-         * Creates a delay for asynchronous operations.
-         * @param {number} ms - The delay duration in milliseconds.
-         * @returns {Promise} - A promise that resolves after the specified delay.
-         */
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+    gtag('config', 'G-9VPWQYV9ZZ');
     </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1D1A3A">
+    <title>15-Puzzle Solver - Quindici</title>
+    <meta name="description" content="Find the optimal solution to any 15-puzzle board, step through it move by move, and download it as a GIF.">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48x48.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+    <link rel="stylesheet" href="../tokens.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+</head>
+<body class="page-solver">
+    <header class="site-header">
+        <a class="logo" href="../"><span class="logo-mark" aria-hidden="true">15</span>quindici</a>
+        <nav class="site-nav" aria-label="Main">
+            <a href="../">Free play</a>
+            <a href="./" aria-current="page">Solver</a>
+        </nav>
+        <button type="button" class="help-button" id="helpButton" aria-haspopup="dialog" aria-label="How the solver works and keyboard shortcuts">?</button>
+    </header>
+
+    <main class="solver" id="solver">
+        <section class="solver-play" aria-label="Playback">
+            <div class="board-wrap" id="boardWrap">
+                <div class="board" id="board" role="group" aria-label="Board"></div>
+                <div class="sticker" aria-hidden="true">Solved!</div>
+            </div>
+
+            <div class="scrub">
+                <label for="scrub" class="scrub-label">
+                    <span>Move</span>
+                    <span class="mono scrub-count" id="scrubCount">0 / 0</span>
+                </label>
+                <input id="scrub" type="range" min="0" max="0" value="0" disabled>
+            </div>
+
+            <div class="controls">
+                <button type="button" class="q-btn btn-light icon-btn" id="prevButton" aria-label="Previous move" disabled>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l-6 6 6 6"></path></svg>
+                </button>
+                <button type="button" class="q-btn btn-primary icon-btn play-btn" id="playButton" aria-label="Play" disabled>
+                    <svg class="icon-play" aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.5v13l11-6.5z"></path></svg>
+                    <svg class="icon-pause" aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="4.5" y="3.5" width="4" height="13" rx="1"></rect><rect x="11.5" y="3.5" width="4" height="13" rx="1"></rect></svg>
+                </button>
+                <button type="button" class="q-btn btn-light icon-btn" id="nextButton" aria-label="Next move" disabled>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4l6 6-6 6"></path></svg>
+                </button>
+                <button type="button" class="q-btn btn-secondary mono speed-btn" id="speedButton" aria-label="Playback speed, 1×">1×</button>
+                <button type="button" class="q-btn btn-secondary gif-short js-gif" aria-label="Download GIF" disabled>GIF</button>
+            </div>
+        </section>
+
+        <section class="solver-info" aria-label="Solution">
+            <div class="solver-head">
+                <div class="solver-heading">
+                    <div class="eyebrow" id="eyebrow">Optimal solution<span class="desktop-only"> · A*</span></div>
+                    <h1 class="solver-title" id="title">Solver</h1>
+                </div>
+                <button type="button" class="q-btn btn-light code-toggle" id="codeToggle" aria-expanded="false" aria-controls="codeForm">Edit</button>
+            </div>
+
+            <form class="code-form" id="codeForm" novalidate>
+                <label for="code" class="field-label">Board code</label>
+                <div class="code-row">
+                    <input id="code" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="7586ac3f0b1294ed" aria-describedby="status">
+                    <button type="submit" class="q-btn btn-pace" id="solveButton">Solve</button>
+                </div>
+            </form>
+
+            <p class="status" id="status" role="status" aria-live="polite">Paste a 16-character board code, or open the solver from a game with <kbd>F</kbd>.</p>
+
+            <div class="move-list" id="moveListWrap" hidden>
+                <div class="move-list-head"><span>Tile to slide, in order</span><span id="nextLabel"></span></div>
+                <ol class="moves" id="moves" aria-label="Moves, tile to slide in order"></ol>
+            </div>
+
+            <div class="solver-actions">
+                <button type="button" class="q-btn btn-secondary gif-long js-gif" disabled>Download GIF</button>
+                <a class="q-btn btn-light" id="playLink" href="../">Play this board</a>
+            </div>
+        </section>
+    </main>
+
+    <nav class="tab-bar" aria-label="Main">
+        <a href="../"><span>Free play</span></a>
+        <a href="./" aria-current="page"><span>Solver</span></a>
+    </nav>
+
+    <dialog class="dialog" id="helpDialog" aria-labelledby="helpTitle">
+        <div class="dialog-head">
+            <h2 id="helpTitle">The solver</h2>
+            <button type="button" class="dialog-close" data-close aria-label="Close">×</button>
+        </div>
+        <p>The solver finds the shortest possible solution with an IDA* search (Manhattan distance plus linear conflict). Most boards take a moment; the hardest can take a while.</p>
+        <p class="muted">Each chip is the tile to slide next. The lifted tile on the board is the one that moves next.</p>
+        <h3>Keyboard</h3>
+        <dl class="shortcut-list">
+            <dt><kbd>Space</kbd></dt><dd>Play or pause</dd>
+            <dt><kbd>← →</kbd></dt><dd>Step back or forward</dd>
+            <dt><kbd>Home</kbd> <kbd>End</kbd></dt><dd>Jump to the start or the end</dd>
+            <dt><kbd>?</kbd></dt><dd>Show this help</dd>
+        </dl>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <canvas id="gifCanvas" width="360" height="360" hidden></canvas>
+
+    <script src="../puzzle.js"></script>
+    <script src="solver.js"></script>
 </body>
 </html>

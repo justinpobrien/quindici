@@ -1,0 +1,55 @@
+/* Quindici design tokens (80s retro). Copied from docs/redesign/design/tokens.css; keep the two in sync. */
+:root {
+  /* Surfaces */
+  --q-bg: #1D1A3A;          /* page ground (with grid pattern, below) */
+  --q-panel: #2A2654;       /* cards, board tray, dialogs */
+  --q-ink: #120F26;         /* outlines, hard shadows, text on pastel */
+  --q-line: #4A4585;        /* dashed outline of the empty square */
+  --q-solved-panel: #245C47;/* board tray once solved */
+
+  /* Text */
+  --q-text: #FFF6E5;        /* primary text on dark */
+  --q-muted: #C2BCE8;       /* secondary text on dark (≥ 7:1 on --q-bg and --q-panel) */
+
+  /* Row colors: a tile's color is the row it belongs in */
+  --q-row-1: #FF9EC7;       /* pink, tiles 1–4 */
+  --q-row-2: #FFE27A;       /* yellow, tiles 5–8 */
+  --q-row-3: #8DE8EC;       /* cyan, tiles 9–12 */
+  --q-row-4: #C9B3FF;       /* lavender, tiles 13–15 */
+  --q-home: #8EF0A8;        /* green: tile is in its home square; whole board green = solved */
+
+  /* Semantic accents (reuse the row palette) */
+  --q-accent: var(--q-row-2);     /* headings, primary buttons, active nav */
+  --q-precision: var(--q-row-1);  /* precision bar */
+  --q-pace: var(--q-row-3);       /* pace bar, "par" labels */
+  --q-secondary: var(--q-row-4);  /* secondary buttons (Hint, GIF, Download) */
+
+  /* Type */
+  --q-font-display: Bungee, 'Arial Black', sans-serif;      /* tiles, headings, scores */
+  --q-font-body: Inter, system-ui, sans-serif;               /* UI copy */
+  --q-font-mono: 'JetBrains Mono', ui-monospace, monospace;  /* counters, labels, board codes */
+  /* Google Fonts: https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap */
+
+  /* Shape */
+  --q-border: 3px solid var(--q-ink);
+  --q-shadow-sm: 3px 3px 0 var(--q-ink);
+  --q-shadow: 4px 4px 0 var(--q-ink);
+  --q-shadow-lg: 8px 8px 0 var(--q-ink);
+  --q-radius-tile: 12px;    /* 10px on phones */
+  --q-radius-card: 14px;
+  --q-radius-board: 22px;   /* 18px on phones */
+  --q-radius-button: 12px;
+  --q-text-shadow-heading: 4px 4px 0 var(--q-ink);
+
+  /* Background grid */
+  --q-grid-size: 40px;      /* 32px on phones */
+}
+
+/* Phones: tighter radii and grid */
+@media (max-width: 640px) {
+  :root {
+    --q-radius-tile: 10px;
+    --q-radius-board: 18px;
+    --q-grid-size: 32px;
+  }
+}

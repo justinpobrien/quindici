@@ -11,128 +11,153 @@
     gtag('config', 'G-9VPWQYV9ZZ');
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1D1A3A">
     <title>Quindici - Classic AI-Built 15-Puzzle Game with Solver</title>
     <meta name="description" content="Quindici: Classic 15-puzzle sliding tile game built by AI using large language models. Features a 15-puzzle solver, Solve Step hints, move counter, and timer. Play and solve the game of fifteen!">
     <meta property="og:title" content="Quindici" />
     <meta property="og:description" content="The classic 15-puzzle crafted by AI with a little human touch." />
     <meta property="og:image" content="assets/preview-image.jpg" />
     <meta property="og:url" content="https://quindici.io" />
-    <meta name="twitter:card" content="summary_large_image"> <!-- Better understand this -->
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <!--<link rel="stylesheet" type="text/css" href="style.css" integrity="sha256-vZ9rByxV1bAxLdDOKwpZl2SfDHkQ2OWGNAbPQxBF9fQ=" crossorigin="anonymous">-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="game-container">
-        <h1>Quindici</h1>
-        <h2>The Classic 15-Puzzle Built by AI</h2>
-        <div class="board" id="board">
-            <div id="tiles"></div>
+<body class="page-game">
+    <header class="site-header">
+        <a class="logo" href="./"><span class="logo-mark" aria-hidden="true">15</span>quindici</a>
+        <nav class="site-nav" aria-label="Main">
+            <a href="./" aria-current="page">Free play</a>
+            <a href="solver/" class="js-solver-link">Solver</a>
+        </nav>
+        <button type="button" class="help-button" id="helpButton" aria-haspopup="dialog" aria-label="How to play and keyboard shortcuts">?</button>
+    </header>
 
-            <!-- Game Over Overlay -->
-            <div id="gameOverOverlay" class="overlay" style="display: none;">
-                <div class="overlay-content">
-                    <h2>You Won!</h2>
-                    <div class="stats">
-                        <div>
-                            <div id="scoreValue">0</div>
-                            <div>Score</div>
-                        </div>
-                        <div>
-                            <div id="movesValue">0</div>
-                            <div>Moves</div>
-                        </div>
-                        <div>
-                            <div id="timeValue">0s</div>
-                            <div>Time</div>
-                        </div>
-                    </div>
-                    <button class="overlayButton">Share Game</button>
-                </div>
-            </div>
-            
-            <!-- Shortcut Help Overlay -->
-            <div id="shortcutOverlay" class="overlay" style="display: none;">
-                <div class="overlay-content">
-                    <div>
-                        <h2>Keyboard Shortcuts</h2>
-                    </div>
-                    <div class="shortcutList">
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px;">
-                            <div class="shortcut"><span class="key">↑: </span></div>
-                            <div class="shortcut"><span class="key">↓: </span></div>
-                            <div class="shortcut"><span class="key">←: </span></div>
-                            <div class="shortcut"><span class="key">→: </span></div>
-                            <div class="shortcut"><span class="key">Shift+→: </span></div>
-                            <div class="shortcut"><span class="key">a: </span></div>
-                            <div class="shortcut"><span class="key">s: </span></div>
-                            <div class="shortcut"><span class="key">x: </span></div>
-                            <div class="shortcut"><span class="key">f: </span></div>
-                            <div class="shortcut"><span class="key">?: </span></div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-right: 10px;">
-                            <div class="shortcut">Shift tile up into empty space</div>
-                            <div class="shortcut">Shift tile down into empty space</div>
-                            <div class="shortcut">Shift tile left into empty space</div>
-                            <div class="shortcut">Shift tile right into empty space</div>
-                            <div class="shortcut">Move multiple tiles into empty space</div>
-                            <div class="shortcut">New game</div>
-                            <div class="shortcut">Solve step</div>
-                            <div class="shortcut">Pause/unpause game</div>
-                            <div class="shortcut">Open solver to find optimal solution</div>
-                            <div class="shortcut">Open keyboard shortcut help</div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="close">
-                            <button class="overlayButton" data-overlay="shortcutOverlay">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pause Overlay -->
-            <div id="pauseOverlay" class="overlay" style="display: none;">
-                <div class="overlay-content">
-                    <h2>Game Paused</h2>
-                </div>
-            </div>
-            
-            <!-- Instructions Overlay -->
-            <div id="instructionsOverlay" class="overlay" style="display: none;">
-                <div class="overlay-content">
-                    <h2>Welcome!</h2>
-                    <p>Arrange the tiles from 1 - 15.</p>
-                    <p>Click to move tiles or use arrow keys.</p>
-                    <p>Hit <span class="key">?</span> for keyboard shortcuts</p>
-                    <button class="overlayButton" data-overlay="instructionsOverlay">Start Game</button>
-                </div>
+    <main class="game" id="game">
+        <section class="col col-left" aria-label="About this game">
+            <div class="intro">
+                <div class="eyebrow">Classic 15-puzzle</div>
+                <h1 class="title">Free<br class="desktop-only"> play</h1>
             </div>
 
+            <div class="goal-card">
+                <div class="goal-main">
+                    <div class="mini-board goal-board" id="goalBoard" role="img" aria-label="Goal: tiles 1 to 15 in order, empty square last"></div>
+                    <div class="goal-text">
+                        <div class="goal-heading">The goal</div>
+                        <p>Slide the tiles into order, 1 to 15, left to right from the top-left corner. The empty square ends up last.</p>
+                    </div>
+                    <p class="goal-short"><strong>Goal:</strong> tiles in order, 1 to 15, empty square last. <span>Colors show each tile's row. Green means home.</span></p>
+                </div>
+                <p class="goal-note">Each color is a row: pink tiles belong in row one, yellow in row two, and so on. A tile turns green once it is home.</p>
+            </div>
+
+            <p class="board-code">Board code <a class="mono" id="boardCode" href="./" title="Link to this board">…</a></p>
+
+            <div class="actions">
+                <button type="button" class="q-btn btn-secondary" id="hintButton">Hint</button>
+                <button type="button" class="q-btn btn-light" id="pauseButton">Pause</button>
+                <button type="button" class="q-btn btn-primary" id="newGameButton">New game</button>
+            </div>
+
+            <div class="solved-summary" id="solvedSummary" hidden>
+                <div class="solved-head">
+                    <div class="solved-text">
+                        <div class="eyebrow">Free play · solved</div>
+                        <div class="solved-number" id="solvedMoves">0</div>
+                        <div class="solved-caption" id="solvedCaption">moves</div>
+                    </div>
+                    <div class="solved-mini">
+                        <div class="mini-board solved-board" id="solvedMiniBoard" role="img" aria-label="Solved board"></div>
+                        <div class="sticker sticker-small" aria-hidden="true">Solved!</div>
+                    </div>
+                </div>
+                <div class="solved-actions">
+                    <button type="button" class="q-btn q-btn-lg btn-primary" id="shareButton">Share result</button>
+                    <a class="q-btn q-btn-lg btn-pace" id="watchSolution" href="solver/">Watch the optimal solution</a>
+                    <button type="button" class="link-button" id="playAgainButton">New game</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="board-wrap">
+            <div class="board" id="board" role="group" aria-label="Puzzle board" tabindex="-1"></div>
+
+            <div class="board-cover" id="startCover" hidden>
+                <div class="cover-title">Ready?</div>
+                <p>Slide the tiles into order, 1 to 15. Click a tile or use the arrow keys.</p>
+                <button type="button" class="q-btn btn-primary" id="startButton">Start <kbd>Enter</kbd></button>
+            </div>
+
+            <div class="board-cover" id="pauseCover" hidden>
+                <div class="cover-title">Paused</div>
+                <p>The clock is stopped.</p>
+                <button type="button" class="q-btn btn-primary" id="resumeButton">Resume <kbd>X</kbd></button>
+            </div>
+
+            <div class="sticker" aria-hidden="true">Solved!</div>
         </div>
 
-        <div class="status-bar">
-            <div class="move-counter"><span id="moveCounter">0</span> moves</div>
-            <div class="timer"><span id="timer">0:00</span></div>
-        </div>
-        <div class="buttons">
-            <button id="newGameButton">New Game</button>
-            <button id="solveButton">Solve Step</button>
-        </div>
+        <section class="col col-right" aria-label="Stats">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Moves</div>
+                    <div class="stat-value" id="moveCounter">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value" id="timer">0:00</div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        <div class="footer">
-            <p><b>Crafted by AI</b> with a little human touch.</p>
-            <p><b>Need a hand?</b> Check out the <a href="#" id="solverLink" target="_blank">15-Puzzle Solver</a></p>
-            <p>This project is open source. Check out the <a href="https://github.com/justinpobrien/quindici/" target="_blank">repo</a></p>
-            <p><b>Found a bug?</b> Submit an <a href="https://github.com/justinpobrien/quindici/issues" target="_blank">issue</a></p>
-        </div>
-    </div>
-    <div id="shareMessage">
+    <footer class="site-footer">
+        <span><kbd>← ↑ ↓ →</kbd> slide a tile</span>
+        <span><kbd>Shift + arrow</kbd> slide the row</span>
+        <span><kbd>S</kbd> hint</span>
+        <span><kbd>X</kbd> pause</span>
+        <span><kbd>A</kbd> new game</span>
+        <span><kbd>F</kbd> solver</span>
+        <span><kbd>?</kbd> help</span>
+    </footer>
 
-    </div>
+    <nav class="tab-bar" aria-label="Main">
+        <a href="./" aria-current="page"><span>Free play</span></a>
+        <a href="solver/" class="js-solver-link"><span>Solver</span></a>
+    </nav>
+
+    <dialog class="dialog" id="helpDialog" aria-labelledby="helpTitle">
+        <div class="dialog-head">
+            <h2 id="helpTitle">How to play</h2>
+            <button type="button" class="dialog-close" data-close aria-label="Close">×</button>
+        </div>
+        <p>Slide the tiles into order, 1 to 15, left to right from the top-left corner. The empty square ends up last.</p>
+        <p class="muted">Each color is a row: pink tiles belong in row one, yellow in row two, and so on. A tile turns green once it is home. Tap or click a tile next to the empty square to slide it, or a tile further along the same row or column to slide them all.</p>
+        <h3>Keyboard</h3>
+        <dl class="shortcut-list">
+            <dt><kbd>← ↑ ↓ →</kbd></dt><dd>Slide the adjacent tile into the empty square</dd>
+            <dt><kbd>Shift + arrow</kbd></dt><dd>Slide the whole row or column</dd>
+            <dt><kbd>Enter</kbd></dt><dd>Start the game</dd>
+            <dt><kbd>S</kbd></dt><dd>Hint: make the next move for you</dd>
+            <dt><kbd>X</kbd></dt><dd>Pause or resume</dd>
+            <dt><kbd>A</kbd></dt><dd>New game</dd>
+            <dt><kbd>F</kbd></dt><dd>Open the solver for this board</dd>
+            <dt><kbd>?</kbd></dt><dd>Show this help</dd>
+        </dl>
+        <p class="muted small"><strong>Crafted by AI</strong> with a little human touch. Open source on <a href="https://github.com/justinpobrien/quindici/" target="_blank" rel="noopener">GitHub</a>. Found a bug? <a href="https://github.com/justinpobrien/quindici/issues" target="_blank" rel="noopener">Open an issue</a>.</p>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="sr-only" id="announcer" aria-live="polite"></div>
+
+    <script src="puzzle.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

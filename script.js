@@ -1,816 +1,522 @@
-// script.js
-
-// Wrap the entire code in an IIFE to avoid polluting the global namespace
-(function() {
+// script.js: the Quindici game (Free play).
+// Board helpers live in puzzle.js (window.Puzzle).
+(function () {
     'use strict';
 
-    // Class representing the puzzle game
-    class PuzzleGame {
-        constructor(size) {
-            // Game configuration
-            this.size = size;
-            this.goalState = Array.from({ length: size * size - 1 }, (_, i) => i + 1).concat(0);
+    const P = window.Puzzle;
+    const SIZE = P.SIZE;
+    const SLIDE_MS = 120;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const coarsePointer = window.matchMedia('(pointer: coarse)');
 
-            // Game state variables
+    const $ = (id) => document.getElementById(id);
+
+    class PuzzleGame {
+        constructor() {
             this.board = [];
             this.initialBoard = [];
-            this.gameWon = false;
-            this.gamePaused = false;
-            this.solutionPath = [];
+            this.fromUrl = false;
 
-            // Animation state
-            this.isAnimating = false;
-
-            // Timer and move counter
             this.moveCount = 0;
-            this.timerInterval = null;
-            this.startTime = null;
-            this.elapsedTime = 0;
-            this.finalTime = 0;
+            this.hintCount = 0;
+            this.hintPath = [];
 
-            // Overlay state
-            this.currentActiveOverlay = null;
-            this.shortcutOverlayOpen = false;
+            this.started = false;   // start cover dismissed
+            this.gameWon = false;
+            this.paused = false;
 
-            // Bind methods to the instance
-            this.initializeGame = this.initializeGame.bind(this);
-            this.newGame = this.newGame.bind(this);
-            this.renderBoard = this.renderBoard.bind(this);
-            this.moveTile = this.moveTile.bind(this);
-            this.solveStep = this.solveStep.bind(this);
-            this.handleKeydown = this.handleKeydown.bind(this);
-            this.shareGame = this.shareGame.bind(this);
+            // Active time, excluding pauses. `runningSince` is a performance.now() stamp while the clock runs.
+            this.elapsedMs = 0;
+            this.runningSince = null;
+            this.tick = null;
+
+            // Pending slide animation, so a fast key press can finish it early.
+            this.pending = null;
+
+            this.el = {
+                main: $('game'),
+                board: $('board'),
+                boardWrap: document.querySelector('.board-wrap'),
+                moves: $('moveCounter'),
+                timer: $('timer'),
+                boardCode: $('boardCode'),
+                hint: $('hintButton'),
+                pause: $('pauseButton'),
+                newGame: $('newGameButton'),
+                startCover: $('startCover'),
+                pauseCover: $('pauseCover'),
+                summary: $('solvedSummary'),
+                solvedMoves: $('solvedMoves'),
+                solvedCaption: $('solvedCaption'),
+                watch: $('watchSolution'),
+                help: $('helpDialog'),
+                toast: $('toast'),
+                announcer: $('announcer'),
+            };
         }
 
-        // Initializes the game
-        initializeGame() {
-            const params = new URLSearchParams(window.location.search);
-            const hexString = params.get('board');
+        // ---------- setup ----------
 
-            if (hexString) {
+        init() {
+            P.renderCells($('goalBoard'), P.GOAL, { colorHome: false, labels: false });
+            P.renderCells($('solvedMiniBoard'), P.GOAL, { solved: true, labels: false });
+
+            const hex = new URLSearchParams(window.location.search).get('board');
+            let board = null;
+            if (hex) {
                 try {
-                    const boardArray = this.hexToBoard(hexString);
-                    if (!this.isSolvable(boardArray)) {
-                        throw new Error("The provided board state is not solvable.");
-                    }
-                    this.board = boardArray;
-                    this.initialBoard = boardArray.slice();
-                    this.renderBoard();
-                    document.getElementById('solveButton').disabled = false;
-                    OverlayManager.show('instructionsOverlay');
-
-                    // Disable the "New Game" button to prevent shuffling
-                    const newGameButton = document.getElementById('newGameButton');
-                    if (newGameButton) {
-                        newGameButton.disabled = true;
-                    }
+                    board = P.fromHex(hex);
+                    if (!P.isSolvable(board)) throw new Error('That board cannot be solved.');
+                    if (P.isGoal(board)) throw new Error('That board is already solved.');
                 } catch (error) {
-                    console.error("Error initializing board from URL:", error);
-                    alert("Invalid board state provided in URL. Starting a new game instead.");
-                    this.newGame();
+                    board = null;
+                    this.toast('Invalid board link: ' + error.message + ' Starting a new game.', 5000);
                 }
-            } else {
-                // No 'board' parameter; start a new game
-                this.newGame();
-                OverlayManager.show('instructionsOverlay');
             }
 
-            // Set up event listeners
-            this.addEventListeners();
-            this.updateFooterLinks();
+            this.fromUrl = !!board;
+            this.reset(board || P.shuffled());
+            this.showCover('start');
+            this.bindEvents();
         }
 
-        // Starts a new game
-        newGame() {
-            this.board = Array.from({ length: this.size * this.size - 1 }, (_, i) => i + 1).concat(0);
-            this.shuffleBoard();
-            while (!this.isSolvable() || this.isGameWon()) {
-                this.shuffleBoard();
-            }
-            this.initialBoard = this.board.slice();
-            this.gameWon = false;
-            this.gamePaused = false;
-            this.solutionPath = [];
-
-            this.renderBoard();
-            document.getElementById('solveButton').disabled = false;
-
-            // Hide all overlays
-            OverlayManager.hideAll();
-
-            // Reset move counter and timer
+        reset(board) {
+            this.cancelAnimation();
+            this.board = board.slice();
+            this.initialBoard = board.slice();
             this.moveCount = 0;
-            this.updateMoveCounter();
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-            this.startTime = null;
-            this.elapsedTime = 0;
-            this.finalTime = 0;
-            this.updateTimerDisplay(0);
+            this.hintCount = 0;
+            this.hintPath = [];
+            this.gameWon = false;
+            this.paused = false;
+            this.stopClock();
+            this.elapsedMs = 0;
 
-            // Enable the "New Game" button
-            const newGameButton = document.getElementById('newGameButton');
-            if (newGameButton) {
-                newGameButton.disabled = false;
-            }
+            this.el.main.classList.remove('is-solved');
+            this.el.boardWrap.classList.remove('is-solved');
+            this.el.summary.hidden = true;
+            this.showCover(null);
+
+            // A shared ?board= link keeps its board until it is solved.
+            this.el.newGame.disabled = this.fromUrl;
+
+            this.render();
+            this.updateStats();
+            this.updateButtons();
+
+            const hex = P.toHex(this.initialBoard);
+            this.el.boardCode.textContent = hex;
+            this.el.boardCode.href = './?board=' + hex;
+            this.el.watch.href = 'solver/?board=' + hex;
         }
 
-        // Shuffles the board
-        shuffleBoard() {
-            for (let i = this.board.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [this.board[i], this.board[j]] = [this.board[j], this.board[i]];
+        newGame() {
+            if (this.fromUrl && !this.gameWon) return;
+            this.fromUrl = false;
+            if (window.location.search) {
+                history.replaceState(null, '', window.location.pathname);
             }
+            this.started = true;
+            this.reset(P.shuffled());
         }
 
-        // Converts a hex string to a board array
-        hexToBoard(hexString) {
-            if (hexString.length !== 16) {
-                throw new Error("Invalid hexadecimal string length. It should be 16 characters long.");
-            }
-            return hexString.split('').map(char => {
-                const value = parseInt(char, 16);
-                if (isNaN(value)) {
-                    throw new Error("Invalid character in hexadecimal string.");
+        bindEvents() {
+            this.el.board.addEventListener('click', (event) => {
+                const tile = event.target.closest('.tile');
+                if (!tile || !this.el.board.contains(tile)) return;
+                const index = Array.prototype.indexOf.call(this.el.board.children, tile);
+                if (this.moveTile(index) && coarsePointer.matches && navigator.vibrate) {
+                    navigator.vibrate(50);
                 }
-                return value;
+            });
+
+            this.el.hint.addEventListener('click', () => this.hint());
+            this.el.pause.addEventListener('click', () => this.togglePause());
+            this.el.newGame.addEventListener('click', () => this.newGame());
+            $('playAgainButton').addEventListener('click', () => this.newGame());
+            $('startButton').addEventListener('click', () => this.start());
+            $('resumeButton').addEventListener('click', () => this.togglePause(false));
+            $('shareButton').addEventListener('click', () => this.share());
+            $('helpButton').addEventListener('click', () => this.toggleHelp());
+
+            this.el.help.addEventListener('click', (event) => {
+                // Close on the backdrop or the × button.
+                if (event.target === this.el.help || event.target.closest('[data-close]')) this.el.help.close();
+            });
+            this.el.help.addEventListener('close', () => this.resumeClockIfPlaying());
+
+            document.addEventListener('keydown', (event) => this.handleKeydown(event));
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && this.runningSince !== null) this.togglePause(true);
             });
         }
 
-        // Checks if the board is solvable
-        isSolvable(boardArray = this.board) {
-            let inversionCount = 0;
-            const boardLength = boardArray.length;
+        // ---------- rendering ----------
 
-            for (let i = 0; i < boardLength; i++) {
-                for (let j = i + 1; j < boardLength; j++) {
-                    if (boardArray[i] !== 0 && boardArray[j] !== 0 && boardArray[i] > boardArray[j]) {
-                        inversionCount++;
-                    }
-                }
-            }
+        render() {
+            const focused = document.activeElement;
+            const focusedTile = focused && focused.classList.contains('tile') && this.el.board.contains(focused)
+                ? Number(focused.textContent) : null;
 
-            const blankIndex = boardArray.indexOf(0);
-            const blankRowFromBottom = this.size - Math.floor(blankIndex / this.size);
-
-            if (this.size % 2 === 1) {
-                return inversionCount % 2 === 0;
-            } else {
-                return (inversionCount + blankRowFromBottom) % 2 === 1;
-            }
-        }
-
-        // Converts the board to a hex string
-        boardToHex(board) {
-            return board.map(n => n.toString(16)).join('');
-        }
-
-        // Updates footer links with the current board state
-        updateFooterLinks() {
-            const solverLink = document.getElementById('solverLink');
-            if (solverLink) {
-                const hexBoard = this.boardToHex(this.board);
-                solverLink.href = '/solver/?board=' + hexBoard;
-            }
-        }
-
-        vibrateOnTouch() {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(50); // Vibrate for 50 milliseconds
-            } else {
-                console.log('Vibration API not supported on this device.');
-            }
-        }
-        
-    
-
-        // Renders the board
-        renderBoard() {
-            const boardElement = document.getElementById('board');
-            const tilesElement = document.getElementById('tiles');
-            tilesElement.innerHTML = '';
-            boardElement.style.backgroundColor = this.gameWon ? '#ADADAD' : '#B9AEA1';
-        
-            this.board.forEach((value, i) => {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                if (value === 0) {
-                    tile.classList.add('empty');
-                    if (this.gameWon) {
-                        tile.style.backgroundColor = '#E4E4E4';
-                    }
-                } else {
-                    const span = document.createElement('span');
-                    span.textContent = value;
-                    tile.appendChild(span);
-                    if (!this.gameWon) {
-                        tile.addEventListener('click', () => {
-                            this.moveTile(i);
-                            this.vibrateOnTouch();
-                        });
-                        tile.addEventListener('touchstart', () => {
-                            this.moveTile(i);
-                            this.vibrateOnTouch();
-                        });
-                        tile.classList.remove('disabled');
-                    } else {
-                        tile.classList.add('disabled');
-                    }
-                }
-                tilesElement.appendChild(tile);
+            P.renderCells(this.el.board, this.board, {
+                tag: this.gameWon ? 'div' : 'button',
+                solved: this.gameWon,
             });
-        
-            this.updateFooterLinks();
-        }
-        
-        // Checks if the game is won
-        isGameWon() {
-            return this.board.every((value, index) => value === this.goalState[index]);
+
+            if (focusedTile !== null) {
+                const again = Array.from(this.el.board.children).find(c => Number(c.textContent) === focusedTile);
+                if (again && again.tagName === 'BUTTON') again.focus();
+            }
+
+            document.querySelectorAll('.js-solver-link').forEach(link => {
+                link.href = 'solver/?board=' + P.toHex(this.board);
+            });
         }
 
-        // Executes the board logic for moving a tile
-        executeMoveLogic(index) {
-            const emptyIndex = this.board.indexOf(0);
-            const row = Math.floor(index / this.size);
-            const col = index % this.size;
-            const emptyRow = Math.floor(emptyIndex / this.size);
-            const emptyCol = emptyIndex % this.size;
+        updateStats() {
+            this.el.moves.textContent = this.moveCount;
+            this.el.timer.textContent = formatTime(this.elapsedNow());
+        }
 
-            if (row === emptyRow) {
-                const step = emptyCol > col ? 1 : -1;
-                for (let i = emptyCol; i !== col; i -= step) {
-                    this.board[emptyRow * this.size + i] = this.board[emptyRow * this.size + i - step];
-                }
-                this.board[emptyRow * this.size + col] = 0;
+        updateButtons() {
+            const playing = this.started && !this.gameWon;
+            this.el.hint.disabled = !playing || this.paused;
+            this.el.pause.disabled = !playing;
+            this.el.pause.textContent = this.paused ? 'Resume' : 'Pause';
+            this.el.pause.setAttribute('aria-pressed', String(this.paused));
+        }
+
+        showCover(which) {
+            this.el.startCover.hidden = which !== 'start';
+            this.el.pauseCover.hidden = which !== 'pause';
+            const covered = which !== null;
+            // While covered, the board must not be seen or reached.
+            this.el.board.classList.toggle('is-covered', covered);
+            this.el.board.inert = covered;
+            if (covered) this.el.board.setAttribute('aria-hidden', 'true');
+            else this.el.board.removeAttribute('aria-hidden');
+        }
+
+        // ---------- moves ----------
+
+        canMove() {
+            return this.started && !this.gameWon && !this.paused && !this.el.help.open;
+        }
+
+        // Slides the tile at `index` (and any tiles between it and the empty square) into the gap.
+        // Returns true if a move was made.
+        moveTile(index, { fromHint = false } = {}) {
+            if (!this.canMove() || this.pending) return false;
+
+            const empty = this.board.indexOf(0);
+            const row = Math.floor(index / SIZE), col = index % SIZE;
+            const emptyRow = Math.floor(empty / SIZE), emptyCol = empty % SIZE;
+            if (index === empty || (row !== emptyRow && col !== emptyCol)) return false;
+
+            // Indices of the tiles that slide, and the direction each one travels.
+            const stride = row === emptyRow ? 1 : SIZE;
+            const step = (empty > index ? 1 : -1) * stride;
+            const moving = [];
+            for (let i = empty - step; i !== index - step; i -= step) moving.push(i);
+
+            if (!fromHint) this.hintPath = [];
+
+            const commit = () => {
+                this.pending = null;
+                for (let i = empty; i !== index; i -= step) this.board[i] = this.board[i - step];
+                this.board[index] = 0;
                 this.moveCount++;
-            } else if (col === emptyCol) {
-                const step = emptyRow > row ? 1 : -1;
-                for (let i = emptyRow; i !== row; i -= step) {
-                    this.board[i * this.size + emptyCol] = this.board[(i - step) * this.size + emptyCol];
-                }
-                this.board[row * this.size + emptyCol] = 0;
-                this.moveCount++;
-            }
-        }
+                this.render();
+                this.updateStats();
+                if (this.runningSince === null && this.elapsedMs === 0) this.startClock();
+                if (P.isGoal(this.board)) this.win();
+            };
 
-        // Moves a tile with a sliding animation
-        moveTile(index) {
-            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen || this.isAnimating) return;
-
-            const tilesElement = document.getElementById('tiles');
-            const emptyIndex = this.board.indexOf(0);
-            const row = Math.floor(index / this.size);
-            const col = index % this.size;
-            const emptyRow = Math.floor(emptyIndex / this.size);
-            const emptyCol = emptyIndex % this.size;
-
-            if (row !== emptyRow && col !== emptyCol) return;
-
-            const indicesToMove = [];
-            let step;
-            if (row === emptyRow) {
-                step = emptyCol > col ? 1 : -1;
-                for (let i = emptyIndex - step; step === 1 ? i >= index : i <= index; i -= step) {
-                    indicesToMove.push(i);
-                }
-            } else {
-                step = emptyRow > row ? 1 : -1;
-                for (let i = emptyIndex - step * this.size; step === 1 ? i >= index : i <= index; i -= step * this.size) {
-                    indicesToMove.push(i);
-                }
+            if (reducedMotion.matches) {
+                commit();
+                return true;
             }
 
-            if (indicesToMove.length === 0) return;
-
-            this.isAnimating = true;
-            const duration = 120; // milliseconds
-
-            indicesToMove.forEach(i => {
-                const tile = tilesElement.children[i];
-                const neighbor = row === emptyRow
-                    ? tilesElement.children[i + step]
-                    : tilesElement.children[i + step * this.size];
-                if (!tile || !neighbor) return;
-                const dx = neighbor.offsetLeft - tile.offsetLeft;
-                const dy = neighbor.offsetTop - tile.offsetTop;
-                tile.style.transition = `transform ${duration}ms ease`;
-                tile.style.transform = `translate(${dx}px, ${dy}px)`;
+            const cells = this.el.board.children;
+            moving.forEach(i => {
+                const tile = cells[i], target = cells[i + step];
+                if (!tile || !target) return;
+                tile.style.transition = `transform ${SLIDE_MS}ms ease`;
+                tile.style.transform = `translate(${target.offsetLeft - tile.offsetLeft}px, ${target.offsetTop - tile.offsetTop}px)`;
             });
-
-            setTimeout(() => {
-                indicesToMove.forEach(i => {
-                    const tile = tilesElement.children[i];
-                    if (tile) {
-                        tile.style.transition = '';
-                        tile.style.transform = '';
-                    }
-                });
-
-                this.executeMoveLogic(index);
-                this.renderBoard();
-                this.updateMoveCounter();
-
-                this.isAnimating = false;
-
-                if (!this.timerInterval) {
-                    this.startTimer();
-                }
-
-                if (this.isGameWon()) {
-                    this.endGame();
-                }
-            }, duration);
+            this.pending = { commit, timer: setTimeout(commit, SLIDE_MS) };
+            return true;
         }
 
-        // Ends the game
-        endGame() {
-            this.gameWon = true;
-            this.renderBoard();
-            this.stopTimer();
-
-            // Calculate stats
-            const totalMoves = this.moveCount;
-            const totalTime = Math.floor(this.finalTime);
-            const totalScore = totalMoves + totalTime;
-
-            // Update the stats in the overlay
-            document.getElementById('scoreValue').innerText = totalScore;
-            document.getElementById('movesValue').innerText = totalMoves;
-            document.getElementById('timeValue').innerText = totalTime + 's';
-
-            OverlayManager.show('gameOverOverlay');
-            document.getElementById('solveButton').disabled = true;
-            document.getElementById('newGameButton').disabled = false;
-            
+        // Finishes an in-flight slide immediately (used before a key press so fast typing is never dropped).
+        finishAnimation() {
+            if (!this.pending) return;
+            clearTimeout(this.pending.timer);
+            this.pending.commit();
         }
 
-        // Performs a solve step
-        solveStep() {
-            if (this.gameWon || this.gamePaused || this.shortcutOverlayOpen) return;
+        cancelAnimation() {
+            if (!this.pending) return;
+            clearTimeout(this.pending.timer);
+            this.pending = null;
+        }
 
-            if (this.solutionPath.length === 0) {
-                this.solutionPath = this.greedyBestFirstSearch(this.board.slice());
+        // Arrow keys move the tile next to the empty square into it; with Shift, the whole row or column slides.
+        moveByKey(key, wholeLine) {
+            const offsets = { ArrowUp: [1, 0], ArrowDown: [-1, 0], ArrowLeft: [0, 1], ArrowRight: [0, -1] };
+            const [dr, dc] = offsets[key];
+            const empty = this.board.indexOf(0);
+            let r = Math.floor(empty / SIZE) + dr, c = empty % SIZE + dc;
+            if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+            if (wholeLine) {
+                while (r + dr >= 0 && r + dr < SIZE && c + dc >= 0 && c + dc < SIZE) { r += dr; c += dc; }
             }
-            if (this.solutionPath.length > 0) {
-                this.board = this.solutionPath.shift();
-                this.renderBoard();
-
-                this.moveCount++;
-                this.updateMoveCounter();
-
-                if (!this.timerInterval) {
-                    this.startTimer();
-                }
-
-                if (this.isGameWon()) {
-                    this.endGame();
-                }
-            }
+            this.moveTile(r * SIZE + c);
         }
 
-        // Updates the move counter display
-        updateMoveCounter() {
-            document.getElementById('moveCounter').textContent = this.moveCount;
-        }
-
-        // Starts the game timer
-        startTimer() {
-            if (this.timerInterval) return;
-            this.startTime = Date.now();
-            this.timerInterval = setInterval(() => {
-                const currentTime = Date.now();
-                this.elapsedTime += (currentTime - this.startTime) / 1000;
-                this.startTime = currentTime;
-                this.updateTimerDisplay(Math.floor(this.elapsedTime));
-            }, 1000);
-        }
-
-        // Pauses the game timer
-        pauseTimer() {
-            if (!this.timerInterval) return;
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-            const currentTime = Date.now();
-            this.elapsedTime += (currentTime - this.startTime) / 1000;
-            this.startTime = null;
-        }
-
-        // Stops the game timer
-        stopTimer() {
-            if (this.timerInterval) {
-                clearInterval(this.timerInterval);
-                this.timerInterval = null;
-            }
-            this.finalTime = this.elapsedTime;
-            this.elapsedTime = 0;
-            this.startTime = null;
-        }
-
-        // Updates the timer display
-        updateTimerDisplay(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            document.getElementById('timer').textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        // Greedy Best-First Search algorithm
-        greedyBestFirstSearch(startState) {
-            const openSet = [];
-            openSet.push({ state: startState, priority: this.manhattanDistance(startState) });
-            const cameFrom = new Map();
-            const closedSet = new Set();
-
-            while (openSet.length > 0) {
-                openSet.sort((a, b) => a.priority - b.priority);
-                const current = openSet.shift();
-
-                if (this.arraysEqual(current.state, this.goalState)) {
-                    return this.reconstructPath(cameFrom, current.state);
-                }
-
-                closedSet.add(this.arrayToString(current.state));
-
-                const neighbors = this.getNeighbors(current.state);
-                for (const neighbor of neighbors) {
-                    const neighborString = this.arrayToString(neighbor);
-                    if (closedSet.has(neighborString)) {
-                        continue;
-                    }
-                    if (!openSet.some(item => this.arraysEqual(item.state, neighbor))) {
-                        openSet.push({ state: neighbor, priority: this.manhattanDistance(neighbor) });
-                        cameFrom.set(neighborString, current.state);
-                    }
-                }
-            }
-
-            return [];
-        }
-
-        // Reconstructs the path from the search algorithm
-        reconstructPath(cameFrom, current) {
-            const path = [current];
-            while (cameFrom.has(this.arrayToString(current))) {
-                current = cameFrom.get(this.arrayToString(current));
-                path.unshift(current);
-            }
-            return path.slice(1);
-        }
-
-        // Gets neighboring states
-        getNeighbors(state) {
-            const neighbors = [];
-            const emptyIndex = state.indexOf(0);
-            const row = Math.floor(emptyIndex / this.size);
-            const col = emptyIndex % this.size;
-
-            const directions = [
-                { rowOffset: -1, colOffset: 0 },
-                { rowOffset: 1, colOffset: 0 },
-                { rowOffset: 0, colOffset: -1 },
-                { rowOffset: 0, colOffset: 1 }
-            ];
-
-            directions.forEach(({ rowOffset, colOffset }) => {
-                const newRow = row + rowOffset;
-                const newCol = col + colOffset;
-                if (newRow >= 0 && newRow < this.size && newCol >= 0 && newCol < this.size) {
-                    const newIndex = newRow * this.size + newCol;
-                    const newState = state.slice();
-                    [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
-                    neighbors.push(newState);
-                }
-            });
-
-            return neighbors;
-        }
-
-        // Calculates the Manhattan distance heuristic
-        manhattanDistance(state) {
-            let distance = 0;
-            state.forEach((value, i) => {
-                if (value !== 0) {
-                    const correctPosition = value - 1;
-                    const currentRow = Math.floor(i / this.size);
-                    const currentCol = i % this.size;
-                    const correctRow = Math.floor(correctPosition / this.size);
-                    const correctCol = correctPosition % this.size;
-                    distance += Math.abs(currentRow - correctRow) + Math.abs(currentCol - correctCol);
-                }
-            });
-            return distance;
-        }
-
-        // Checks if two arrays are equal
-        arraysEqual(a, b) {
-            return a.length === b.length && a.every((val, index) => val === b[index]);
-        }
-
-        // Converts an array to a string
-        arrayToString(array) {
-            return array.join(',');
-        }
-
-        // Handles keydown events
-        handleKeydown(event) {
+        // Hint: plays the next move of a greedy best-first path. It costs one move, as before.
+        hint() {
+            if (!this.canMove()) return;
+            this.finishAnimation();
             if (this.gameWon) return;
 
-            if (this.handleOverlayKeys(event)) return;
-            if (this.handlePauseKey(event)) return;
-            if (this.handleGameControls(event)) return;
-
-            this.handleTileMovement(event);
+            if (this.hintPath.length === 0) this.hintPath = greedyPath(this.board);
+            const next = this.hintPath.shift();
+            if (!next) return;
+            const index = this.board.findIndex((v, i) => v !== 0 && next[i] === 0);
+            if (index === -1) { this.hintPath = []; return; }
+            this.hintCount++;
+            this.moveTile(index, { fromHint: true });
         }
 
-        // Handles overlay-related key events
-        handleOverlayKeys(event) {
-            if (event.key === '?') {
-                this.toggleShortcutOverlay();
-                event.preventDefault();
-                return true;
-            }
-            if (event.key === 'Escape') {
-                if (OverlayManager.currentOverlay && OverlayManager.currentOverlay !== 'gameOverOverlay') {
-                    if (OverlayManager.currentOverlay === 'shortcutOverlay') {
-                        this.toggleShortcutOverlay();
-                    } else if (OverlayManager.currentOverlay === 'pauseOverlay') {
-                        this.togglePauseGame();
-                    } else {
-                        OverlayManager.hide(OverlayManager.currentOverlay);
-                    }
-                    event.preventDefault();
-                    return true;
-                }
-            }
-            return false;
-        }
-        
+        win() {
+            this.gameWon = true;
+            this.stopClock();
+            this.updateStats();
 
-        // Handles pause key events
-        handlePauseKey(event) {
-            if (event.key.toLowerCase() === 'x') {
-                this.togglePauseGame();
-                event.preventDefault();
-                return true;
-            }
-            return false;
+            const focusWasOnBoard = this.el.board.contains(document.activeElement);
+            this.render();
+            this.el.main.classList.add('is-solved');
+            this.el.boardWrap.classList.add('is-solved');
+            this.el.newGame.disabled = false;
+            this.updateButtons();
+
+            const time = formatTime(this.elapsedMs);
+            this.el.solvedMoves.textContent = this.moveCount;
+            this.el.solvedCaption.textContent = (this.moveCount === 1 ? 'move' : 'moves') + ' · solved in ' + time;
+            this.el.summary.hidden = false;
+            this.announce(`Solved in ${this.moveCount} ${this.moveCount === 1 ? 'move' : 'moves'} and ${time}.`);
+            if (focusWasOnBoard || document.activeElement === document.body) $('shareButton').focus();
         }
 
-        // Handles game control keys
-        handleGameControls(event) {
-            switch (event.key.toLowerCase()) {
-                case 'a':
-                    this.newGame();
-                    event.preventDefault();
-                    return true;
-                case 's':
-                    this.solveStep();
-                    event.preventDefault();
-                    return true;
-                case 'f':
-                    this.openSolverLink();
-                    event.preventDefault();
-                    return true;
-            }
-            return false;
+        // ---------- clock ----------
+
+        elapsedNow() {
+            return this.elapsedMs + (this.runningSince === null ? 0 : performance.now() - this.runningSince);
         }
 
-        // Handles tile movement keys
-        handleTileMovement(event) {
-            if (this.gamePaused || this.shortcutOverlayOpen) return;
+        startClock() {
+            if (this.runningSince !== null || this.gameWon) return;
+            this.runningSince = performance.now();
+            this.tick = setInterval(() => this.updateStats(), 250);
+        }
 
-            let emptyIndex = this.board.indexOf(0);
-            const row = Math.floor(emptyIndex / this.size);
-            const col = emptyIndex % this.size;
-            let targetRow = row;
-            let targetCol = col;
-            let rowOffset = 0;
-            let colOffset = 0;
-
-            switch (event.key) {
-                case 'ArrowUp':
-                    rowOffset = 1;
-                    event.preventDefault();
-                    break;
-                case 'ArrowDown':
-                    rowOffset = -1;
-                    event.preventDefault();
-                    break;
-                case 'ArrowLeft':
-                    colOffset = 1;
-                    event.preventDefault();
-                    break;
-                case 'ArrowRight':
-                    colOffset = -1;
-                    event.preventDefault();
-                    break;
-                default:
-                    return;
+        stopClock() {
+            if (this.runningSince !== null) {
+                this.elapsedMs += performance.now() - this.runningSince;
+                this.runningSince = null;
             }
+            clearInterval(this.tick);
+            this.tick = null;
+        }
 
-            if ((rowOffset !== 0 || colOffset !== 0) && event.shiftKey) {
-                while (true) {
-                    const newRow = targetRow + rowOffset;
-                    const newCol = targetCol + colOffset;
+        // The clock starts on the first move, so only resume it once play has begun.
+        resumeClockIfPlaying() {
+            if (this.started && !this.gameWon && !this.paused && this.moveCount > 0) this.startClock();
+        }
 
-                    if (newRow < 0 || newRow >= this.size || newCol < 0 || newCol >= this.size) {
-                        break;
-                    }
+        // ---------- overlays ----------
 
-                    const newIndex = newRow * this.size + newCol;
-                    [this.board[emptyIndex], this.board[newIndex]] = [this.board[newIndex], this.board[emptyIndex]];
-                    emptyIndex = newIndex;
-                    targetRow = newRow;
-                    targetCol = newCol;
-                }
-            } else if (rowOffset !== 0 || colOffset !== 0) {
-                const newRow = targetRow + rowOffset;
-                const newCol = targetCol + colOffset;
+        start() {
+            if (this.started) return;
+            this.started = true;
+            this.showCover(null);
+            this.updateButtons();
+            // Keep keyboard focus near the board without drawing a ring on a tile.
+            this.el.board.focus({ preventScroll: true });
+        }
 
-                if (newRow < 0 || newRow >= this.size || newCol < 0 || newCol >= this.size) {
-                    return;
-                }
+        togglePause(force) {
+            if (!this.started || this.gameWon) return;
+            const pause = typeof force === 'boolean' ? force : !this.paused;
+            if (pause === this.paused) return;
+            this.finishAnimation();
+            if (this.gameWon) return;
 
-                const newIndex = newRow * this.size + newCol;
-                [this.board[emptyIndex], this.board[newIndex]] = [this.board[newIndex], this.board[emptyIndex]];
+            this.paused = pause;
+            if (pause) {
+                this.stopClock();
+                this.showCover('pause');
+                this.updateStats();
             } else {
+                this.showCover(null);
+                this.resumeClockIfPlaying();
+            }
+            this.updateButtons();
+            if (pause && this.el.board.contains(document.activeElement)) $('resumeButton').focus();
+        }
+
+        toggleHelp() {
+            if (this.el.help.open) {
+                this.el.help.close();
+                return;
+            }
+            this.stopClock();
+            this.el.help.showModal();
+        }
+
+        // ---------- keyboard ----------
+
+        handleKeydown(event) {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            const key = event.key;
+
+            if (key === '?') {
+                this.toggleHelp();
+                event.preventDefault();
+                return;
+            }
+            if (this.el.help.open) return; // the dialog handles Escape itself
+
+            const target = event.target;
+            const inControl = target && target.closest && target.closest('input, textarea, select, a, button:not(.tile)');
+
+            if (!this.started) {
+                if (key === 'Enter' && !inControl) {
+                    this.start();
+                    event.preventDefault();
+                }
                 return;
             }
 
-            this.renderBoard();
-            this.moveCount++;
-            this.updateMoveCounter();
-            this.vibrateOnTouch();
-
-            if (!this.timerInterval) {
-                this.startTimer();
+            switch (key.toLowerCase()) {
+                case 'x':
+                    this.togglePause();
+                    event.preventDefault();
+                    return;
+                case 'escape':
+                    if (this.paused) { this.togglePause(false); event.preventDefault(); }
+                    return;
+                case 'a':
+                    this.newGame();
+                    event.preventDefault();
+                    return;
+                case 's':
+                    this.hint();
+                    event.preventDefault();
+                    return;
+                case 'f':
+                    window.open('solver/?board=' + P.toHex(this.board), '_blank');
+                    event.preventDefault();
+                    return;
             }
 
-            if (this.isGameWon()) {
-                this.endGame();
-            }
-        }
-
-        // Toggles the shortcut overlay
-        toggleShortcutOverlay() {
-            if (this.shortcutOverlayOpen) {
-                OverlayManager.hide('shortcutOverlay');
-                this.shortcutOverlayOpen = false;
-                if (!this.gamePaused) {
-                    this.startTimer();
-                }
-            } else {
-                OverlayManager.show('shortcutOverlay');
-                this.shortcutOverlayOpen = true;
-                this.pauseTimer();
-            }
-        }
-
-        // Toggles the pause overlay
-        togglePauseGame() {
-            if (this.gamePaused) { // if (OverlayManager.currentOverlay === 'pauseOverlay')
-                OverlayManager.hide('pauseOverlay');
-                this.gamePaused = false;
-                this.startTimer();
-            } else {
-                OverlayManager.show('pauseOverlay');
-                this.gamePaused = true;
-                this.pauseTimer();
+            if (key.startsWith('Arrow') && this.canMove()) {
+                event.preventDefault();
+                this.finishAnimation();
+                if (this.canMove()) this.moveByKey(key, event.shiftKey);
             }
         }
 
-        // Opens the solver link
-        openSolverLink() {
-            const solverLink = document.getElementById('solverLink');
-            if (solverLink) {
-                window.open(solverLink.href, '_blank');
-            }
-        }
+        // ---------- sharing ----------
 
-        // Shares the game
-        shareGame() {
-            const currentUrl = window.location.origin + window.location.pathname;
-            const hexBoard = this.boardToHex(this.initialBoard);
-            const shareUrl = `${currentUrl}?board=${hexBoard}`;
-
-            const totalMoves = this.moveCount;
-            const totalTime = Math.floor(this.finalTime);
-            const totalScore = totalMoves + totalTime;
-
-            const shareMessage = `15-Puzzle Stats: ${totalScore} (${totalMoves} moves + ${totalTime}s)\nCan you beat ${totalScore}?\n${shareUrl}`;
+        share() {
+            const url = `${window.location.origin}${window.location.pathname}?board=${P.toHex(this.initialBoard)}`;
+            const text = `quindici · solved in ${this.moveCount} moves, ${formatTime(this.elapsedMs)}\nCan you beat it?`;
 
             if (navigator.share) {
-                navigator.share({
-                    title: '15-Puzzle Challenge',
-                    text: `15-Puzzle Stats: ${totalScore} (${totalMoves} moves + ${totalTime}s)\nCan you beat ${totalScore}?`,
-                    url: shareUrl,
-                })
-                .then(() => {
-                    this.showTemporaryMessage("Shared!");
-                })
-                .catch((error) => {
-                    console.error('Error sharing:', error);
-                    alert("Failed to share the game stats. Please try again.");
-                });
+                navigator.share({ title: 'Quindici', text, url })
+                    .catch((error) => {
+                        if (error.name !== 'AbortError') this.copy(`${text}\n${url}`);
+                    });
             } else {
-                navigator.clipboard.writeText(shareMessage).then(() => {
-                    this.showTemporaryMessage("Copied to clipboard!");
-                }).catch(err => {
-                    console.error('Could not copy text: ', err);
-                    alert("Failed to copy the message. Please copy it manually.");
-                });
+                this.copy(`${text}\n${url}`);
             }
         }
 
-        // Displays a temporary message
-        showTemporaryMessage(message) {
-            const messageDiv = document.getElementById('shareMessage');
-            messageDiv.textContent = message;
-            messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 3000);
+        copy(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => this.toast('Copied'))
+                .catch(() => this.toast('Could not copy. Select and copy the board code instead.'));
         }
 
-        // Adds event listeners
-        addEventListeners() {
-            // Buttons
-            document.getElementById('newGameButton').addEventListener('click', this.newGame);
-            document.getElementById('solveButton').addEventListener('click', this.solveStep);
+        toast(message, ms = 2400) {
+            const el = this.el.toast;
+            el.textContent = message;
+            el.classList.add('is-visible');
+            clearTimeout(this.toastTimer);
+            this.toastTimer = setTimeout(() => el.classList.remove('is-visible'), ms);
+        }
 
-            // Overlay buttons
-            const overlayButtons = document.querySelectorAll('.overlayButton');
-            overlayButtons.forEach(button => {
-                button.addEventListener('click', (event) => {
-                    const overlayId = event.target.getAttribute('data-overlay');
-                    if (overlayId) {
-                        OverlayManager.hide(overlayId);
-                    }
-                });
-            });
-
-            // Close overlay links
-            const closeLinks = document.querySelectorAll('.close button');
-            closeLinks.forEach(link => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    const overlayId = event.target.getAttribute('data-overlay');
-                    if (overlayId) {
-                        if (overlayId === 'shortcutOverlay') {
-                            this.toggleShortcutOverlay();
-                        } else if (overlayId === 'pauseOverlay') {
-                            this.togglePauseGame();
-                        } else {
-                            OverlayManager.hide(overlayId);
-                        }
-                    }
-                });
-            });
-
-            // Keydown event
-            document.addEventListener('keydown', this.handleKeydown);
-
-            // Share button
-            const shareButton = document.querySelector('#gameOverOverlay .overlayButton');
-            if (shareButton) {
-                shareButton.addEventListener('click', this.shareGame);
-            }
+        announce(message) {
+            this.el.announcer.textContent = message;
         }
     }
 
-    // Overlay Manager
-    const OverlayManager = {
-        currentOverlay: null,
+    // ---------- helpers ----------
 
-        show(overlayId) {
-            this.hideAll();
-            const overlay = document.getElementById(overlayId);
-            if (overlay) {
-                overlay.style.display = 'flex';
-                this.currentOverlay = overlayId;
-            }
-        },
+    function formatTime(ms) {
+        const total = Math.floor(ms / 1000);
+        const m = Math.floor(total / 60), s = total % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
 
-        hide(overlayId) {
-            const overlay = document.getElementById(overlayId);
-            if (overlay) {
-                overlay.style.display = 'none';
-                if (this.currentOverlay === overlayId) {
-                    this.currentOverlay = null;
-                }
-            }
-        },
-
-        hideAll() {
-            document.querySelectorAll('.overlay').forEach(overlay => {
-                overlay.style.display = 'none';
-            });
-            this.currentOverlay = null;
+    function manhattan(state) {
+        let d = 0;
+        for (let i = 0; i < state.length; i++) {
+            const v = state[i];
+            if (v === 0) continue;
+            d += Math.abs(Math.floor(i / SIZE) - Math.floor((v - 1) / SIZE)) + Math.abs(i % SIZE - (v - 1) % SIZE);
         }
-    };
+        return d;
+    }
 
-    // Instantiate and initialize the game
-    const game = new PuzzleGame(4);
-    game.initializeGame();
+    function neighbors(state) {
+        const out = [];
+        const z = state.indexOf(0), r = Math.floor(z / SIZE), c = z % SIZE;
+        for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+            const nr = r + dr, nc = c + dc;
+            if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
+            const n = nr * SIZE + nc, next = state.slice();
+            [next[z], next[n]] = [next[n], next[z]];
+            out.push(next);
+        }
+        return out;
+    }
 
+    // Greedy best-first search on Manhattan distance. Fast but not optimal; returns the boards after each move.
+    function greedyPath(start) {
+        const key = (s) => s.join(',');
+        const open = [{ state: start, h: manhattan(start) }];
+        const cameFrom = new Map([[key(start), null]]);
+        while (open.length) {
+            let best = 0;
+            for (let i = 1; i < open.length; i++) if (open[i].h < open[best].h) best = i;
+            const { state } = open.splice(best, 1)[0];
+            if (P.isGoal(state)) {
+                const path = [];
+                for (let s = state; s && key(s) !== key(start); s = cameFrom.get(key(s))) path.unshift(s);
+                return path;
+            }
+            for (const n of neighbors(state)) {
+                const k = key(n);
+                if (cameFrom.has(k)) continue;
+                cameFrom.set(k, state);
+                open.push({ state: n, h: manhattan(n) });
+            }
+        }
+        return [];
+    }
+
+    new PuzzleGame().init();
 })();

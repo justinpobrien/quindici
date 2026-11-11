@@ -1,164 +1,99 @@
-// solverWorker.js
+// solverWorker.js: optimal 15-puzzle solver.
+// IDA* with Manhattan distance + linear conflict, as in docs/redesign/reference/generate-daily.js:
+// an in-place iterative DFS that never undoes the previous move and keeps no visited set.
+//
+// In:  { board: number[16] }
+// Out: { type: 'progress', bound } while deepening, then { type: 'done', solution } where
+//      solution lists the tile number slid at each step ([] when the board is already solved),
+//      or { type: 'error', message }.
 
-// Heuristic Functions
-function manhattanDistance(state) {
-    let distance = 0;
-    const size = 4;
-    for (let i = 0; i < state.length; i++) {
-        if (state[i] !== 0) {
-            const target = state[i] - 1;
-            const currentRow = Math.floor(i / size);
-            const currentCol = i % size;
-            const targetRow = Math.floor(target / size);
-            const targetCol = target % size;
-            distance += Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
-        }
+function heuristic(b) {
+    let d = 0;
+    for (let i = 0; i < 16; i++) {
+        const v = b[i];
+        if (!v) continue;
+        const g = v - 1;
+        d += Math.abs((i >> 2) - (g >> 2)) + Math.abs((i & 3) - (g & 3));
     }
-    return distance;
-}
-
-function linearConflict(state) {
-    let conflict = 0;
-    const size = 4;
-
-    // Rows
-    for (let row = 0; row < size; row++) {
-        let max = -1;
-        for (let col = 0; col < size; col++) {
-            const index = row * size + col;
-            const tile = state[index];
-            if (tile !== 0 && Math.floor((tile - 1) / size) === row) {
-                if (tile > max) {
-                    max = tile;
-                } else {
-                    conflict += 2;
-                }
+    for (let r = 0; r < 4; r++) {
+        for (let a = 0; a < 4; a++) {
+            const va = b[r * 4 + a];
+            if (!va || ((va - 1) >> 2) !== r) continue;
+            for (let c = a + 1; c < 4; c++) {
+                const vc = b[r * 4 + c];
+                if (vc && ((vc - 1) >> 2) === r && vc < va) d += 2;
             }
         }
     }
-
-    // Columns
-    for (let col = 0; col < size; col++) {
-        let max = -1;
-        for (let row = 0; row < size; row++) {
-            const index = row * size + col;
-            const tile = state[index];
-            if (tile !== 0 && (tile - 1) % size === col) {
-                if (tile > max) {
-                    max = tile;
-                } else {
-                    conflict += 2;
-                }
+    for (let c = 0; c < 4; c++) {
+        for (let a = 0; a < 4; a++) {
+            const va = b[a * 4 + c];
+            if (!va || ((va - 1) & 3) !== c) continue;
+            for (let r = a + 1; r < 4; r++) {
+                const vc = b[r * 4 + c];
+                if (vc && ((vc - 1) & 3) === c && vc < va) d += 2;
             }
         }
     }
-
-    return conflict;
+    return d;
 }
 
-function enhancedHeuristic(state) {
-    return manhattanDistance(state) + linearConflict(state);
+function isSolvable(b) {
+    let inv = 0;
+    const f = b.filter((x) => x);
+    for (let i = 0; i < 15; i++) for (let j = i + 1; j < 15; j++) if (f[i] > f[j]) inv++;
+    return (inv + 4 - Math.floor(b.indexOf(0) / 4)) % 2 === 1;
 }
 
-// Utility Functions
-function arraysEqual(a, b) {
-    return a.length === b.length && a.every((val, index) => val === b[index]);
-}
+const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
-function arrayToString(array) {
-    return array.join(',');
-}
+function solve(start, onBound) {
+    const b = start.slice();
+    const path = [];
+    let bound = heuristic(b);
 
-function goalState() {
-    return Array.from({ length: 15 }, (_, i) => i + 1).concat(0);
-}
-
-function getNeighbors(state) {
-    const neighbors = [];
-    const size = 4;
-    const emptyIndex = state.indexOf(0);
-    const row = Math.floor(emptyIndex / size);
-    const col = emptyIndex % size;
-
-    const directions = [
-        { rowOffset: -1, colOffset: 0 }, // Up
-        { rowOffset: 1, colOffset: 0 },  // Down
-        { rowOffset: 0, colOffset: -1 }, // Left
-        { rowOffset: 0, colOffset: 1 }   // Right
-    ];
-
-    for (const { rowOffset, colOffset } of directions) {
-        const newRow = row + rowOffset;
-        const newCol = col + colOffset;
-        if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
-            const newIndex = newRow * size + newCol;
-            const newState = state.slice();
-            // Swap the empty tile with the adjacent tile
-            [newState[emptyIndex], newState[newIndex]] = [newState[newIndex], newState[emptyIndex]];
-            neighbors.push(newState);
-        }
-    }
-
-    return neighbors;
-}
-
-// IDA* Implementation
-function idaStar(startState) {
-    const goal = goalState();
-    let threshold = enhancedHeuristic(startState);
-    const path = [startState];
-    let found = false;
-    let finalPath = [];
-
-    function search(state, g, threshold, path, visited) {
-        const f = g + enhancedHeuristic(state);
-        if (f > threshold) {
-            return f;
-        }
-        if (arraysEqual(state, goal)) {
-            finalPath = path.slice();
-            found = true;
-            return f;
-        }
-
+    function dfs(z, g, prev) {
+        const h = heuristic(b);
+        const f = g + h;
+        if (f > bound) return f;
+        if (h === 0) return -1;
         let min = Infinity;
-        const neighbors = getNeighbors(state);
-
-        for (const neighbor of neighbors) {
-            const neighborKey = arrayToString(neighbor);
-            if (!visited.has(neighborKey)) {
-                visited.add(neighborKey);
-                path.push(neighbor);
-                const temp = search(neighbor, g + 1, threshold, path, visited);
-                if (found) {
-                    return temp;
-                }
-                if (temp < min) {
-                    min = temp;
-                }
-                path.pop();
-                visited.delete(neighborKey);
-            }
+        const zr = z >> 2, zc = z & 3;
+        for (const [dr, dc] of DIRS) {
+            const r = zr + dr, c = zc + dc;
+            if (r < 0 || r > 3 || c < 0 || c > 3) continue;
+            const n = r * 4 + c;
+            if (n === prev) continue;
+            const tile = b[n];
+            b[z] = tile; b[n] = 0; path.push(tile);
+            const res = dfs(n, g + 1, z);
+            if (res === -1) return -1;
+            b[n] = tile; b[z] = 0; path.pop();
+            if (res < min) min = res;
         }
         return min;
     }
 
-    while (true) {
-        const visited = new Set();
-        visited.add(arrayToString(startState));
-        const temp = search(startState, 0, threshold, path, visited);
-        if (found) {
-            return finalPath;
-        }
-        if (temp === Infinity) {
-            return []; // No solution found
-        }
-        threshold = temp;
+    for (;;) {
+        onBound(bound);
+        const r = dfs(b.indexOf(0), 0, -1);
+        if (r === -1) return path.slice();
+        if (r === Infinity) return null;
+        bound = r;
     }
 }
 
-onmessage = function(e) {
-    const startState = e.data;
-    const path = idaStar(startState);
-    postMessage(path);
+onmessage = function (e) {
+    const board = e.data && e.data.board;
+    if (!Array.isArray(board) || board.length !== 16 || new Set(board).size !== 16) {
+        postMessage({ type: 'error', message: 'Invalid board.' });
+        return;
+    }
+    if (!isSolvable(board)) {
+        postMessage({ type: 'error', message: 'This board cannot be solved.' });
+        return;
+    }
+    const solution = solve(board, (bound) => postMessage({ type: 'progress', bound }));
+    if (solution) postMessage({ type: 'done', solution });
+    else postMessage({ type: 'error', message: 'No solution found.' });
 };

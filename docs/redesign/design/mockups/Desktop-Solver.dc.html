@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quindici solver, optimal solution playback</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2BCE8;text-decoration:none}a:hover{color:#FFF6E5}
+</style>
+</helmet>
+<div style="min-height: 820px; box-sizing: border-box; background-color: #1D1A3A; background-image: linear-gradient(#2A2654 1px, transparent 1px), linear-gradient(90deg, #2A2654 1px, transparent 1px); background-size: 40px 40px; color: #FFF6E5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 14px 32px; background: #1D1A3A; border-bottom: 3px solid #120F26">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; color: #FFF6E5; font: 400 22px Bungee, 'Arial Black', sans-serif"><span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; box-sizing: border-box; border-radius: 8px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px">15</span>quindici</a>
+<nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Daily</a>
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Free play</a>
+<a href="Desktop-Solver.dc.html" aria-current="page" style="padding: 10px 16px; border-radius: 10px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px; font-weight: 600">Solver</a>
+<a href="Desktop-Leaderboard.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Leaderboard</a>
+</nav>
+<button aria-label="Keyboard shortcuts" style="width: 44px; height: 44px; border-radius: 10px; border: 3px solid #120F26; background: #8DE8EC; box-shadow: 3px 3px 0 #120F26; color: #120F26; font: 400 16px Bungee, 'Arial Black', sans-serif; cursor: pointer">?</button>
+</header>
+<main style="flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 56px; width: 100%; max-width: 1180px; margin: 0 auto; box-sizing: border-box; padding: 40px 32px">
+<section style="flex: 0 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+<div role="group" aria-label="Board at move 18 of 48" style="width: 100%; aspect-ratio: 1 / 1; box-sizing: border-box; padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 12px; background: #2A2654; border: 3px solid #120F26; border-radius: 22px; box-shadow: 8px 8px 0 #120F26">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="16">
+<sc-if value="{{t.blank}}" hint-placeholder-val="{{false}}"><div style="box-sizing: border-box; border-radius: 12px; background: #1D1A3A; border: 3px dashed #4A4585"></div></sc-if>
+<sc-if value="{{t.next}}" hint-placeholder-val="{{false}}"><div aria-label="{{t.label}}, next to move" style="min-width: 0; padding: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 3px solid #FFF6E5; border-radius: 12px; background: {{t.bg}}; box-shadow: 0 0 0 3px #120F26, 7px 7px 0 3px #120F26; transform: translate(-3px, -3px); color: #120F26; font: 400 38px Bungee, 'Arial Black', sans-serif">{{t.n}}</div></sc-if>
+<sc-if value="{{t.tile}}" hint-placeholder-val="{{true}}"><div aria-label="{{t.label}}" style="min-width: 0; padding: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 3px solid #120F26; border-radius: 12px; background: {{t.bg}}; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 400 38px Bungee, 'Arial Black', sans-serif">{{t.n}}</div></sc-if>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="scrub" style="display: flex; justify-content: space-between; font-size: 13px; color: #C2BCE8"><span>Move</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">18 / 48</span></label>
+<input id="scrub" type="range" min="0" max="48" value="18" style="width: 100%; height: 24px; margin: 0; accent-color: #FFE27A">
+</div>
+<div style="display: flex; align-items: center; justify-content: center; gap: 14px">
+<button aria-label="Previous move" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; box-sizing: border-box; padding: 0; border-radius: 12px; background: #FFF6E5; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l-6 6 6 6"></path></svg></button>
+<button aria-label="Play" style="display: flex; align-items: center; justify-content: center; width: 76px; height: 52px; box-sizing: border-box; padding: 0; border-radius: 12px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M6 3.5v13l11-6.5z"></path></svg></button>
+<button aria-label="Next move" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; box-sizing: border-box; padding: 0; border-radius: 12px; background: #FFF6E5; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; cursor: pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4l6 6-6 6"></path></svg></button>
+<button aria-label="Playback speed, 1×" style="height: 52px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #C9B3FF; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer; font-family: 'JetBrains Mono', ui-monospace, monospace">1×</button>
+</div>
+</section>
+<section style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font: 500 13px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #8DE8EC">OPTIMAL SOLUTION · A*</div>
+<h1 style="margin: 0; font: 400 54px/1 Bungee, 'Arial Black', sans-serif; color: #FFE27A; text-shadow: 4px 4px 0 #120F26"><span style="color: #8DE8EC">48</span> moves</h1>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="code" style="font-size: 13px; color: #C2BCE8">Board code</label>
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<input id="code" type="text" value="7586ac3f0b1294ed" style="flex: 1 1 220px; min-width: 0; height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 3px solid #120F26; background: #1D1A3A; color: #FFF6E5; font: 500 16px 'JetBrains Mono', ui-monospace, monospace">
+<button style="height: 48px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #8DE8EC; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer">Solve</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #C2BCE8"><span>Tile to slide, in order</span><span>Next: <strong style="color: #FFE27A; font-weight: 600">12</strong></span></div>
+<ol aria-label="Moves, tile to slide in order" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 7px">
+<sc-for list="{{moves}}" as="m" hint-placeholder-count="48">
+<sc-if value="{{m.done}}" hint-placeholder-val="{{false}}"><li style="display: flex; align-items: center; justify-content: center; height: 36px; box-sizing: border-box; border-radius: 7px; font: 500 14px 'JetBrains Mono', ui-monospace, monospace; background: #1D1A3A; border: 2px solid #2A2654; color: #C2BCE8">{{m.n}}</li></sc-if>
+<sc-if value="{{m.current}}" hint-placeholder-val="{{false}}"><li aria-current="step" style="display: flex; align-items: center; justify-content: center; height: 36px; box-sizing: border-box; border-radius: 7px; font: 500 14px 'JetBrains Mono', ui-monospace, monospace; background: #FFF6E5; border: 2px solid #120F26; box-shadow: 2px 2px 0 #120F26; color: #120F26">{{m.n}}</li></sc-if>
+<sc-if value="{{m.todo}}" hint-placeholder-val="{{true}}"><li style="display: flex; align-items: center; justify-content: center; height: 36px; box-sizing: border-box; border-radius: 7px; font: 500 14px 'JetBrains Mono', ui-monospace, monospace; background: #2A2654; border: 2px solid #120F26; color: {{m.color}}">{{m.n}}</li></sc-if>
+</sc-for>
+</ol>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<button style="height: 48px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #C9B3FF; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer">Download GIF</button>
+<a href="Main.dc.html" style="display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #FFF6E5; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer">Play this board</a>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #C2BCE8">Today's daily board stays locked here until you have solved it yourself.</p>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+var ROW = ['#FF9EC7', '#FFE27A', '#8DE8EC', '#C9B3FF'];
+var B = [7, 5, 2, 8, 10, 1, 12, 6, 11, 4, 0, 3, 9, 13, 14, 15];
+var NEXT = 12;
+var tiles = B.map(function (n, i) { var home = n !== 0 && n === i + 1; return { n: n, blank: n === 0, next: n !== 0 && n === NEXT, tile: n !== 0 && n !== NEXT, bg: n === 0 ? '' : (home ? '#8EF0A8' : ROW[Math.floor((n - 1) / 4)]), label: 'Tile ' + n + (home ? ', in place' : '') }; });
+var P = [11, 1, 2, 15, 3, 2, 14, 13, 15, 3, 6, 8, 2, 12, 1, 4, 13, 14, 12, 6, 3, 12, 4, 11, 10, 7, 5, 1, 6, 4, 11, 6, 7, 5, 1, 2, 4, 3, 8, 4, 3, 7, 6, 10, 9, 13, 14, 15];
+var step = 18;
+var moves = P.map(function (n, i) { return { n: n, done: i < step, current: i === step, todo: i > step, color: ROW[Math.floor((n - 1) / 4)] }; });
+return { tiles: tiles, moves: moves };
+}
+}
+</script>
+</body>
+</html>
