@@ -149,6 +149,62 @@
 .rules strong { color: var(--q-text); font-weight: 600; }
 #helpBody { display: flex; flex-direction: column; gap: 14px; }
 
+/* Score distribution: one bar per band, ≤ 24px wide, 4px rounded tops, 2px gaps, hairline baseline. */
+.dist-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px 14px;
+    border-radius: var(--q-radius-card);
+    background: var(--q-panel);
+    border: var(--q-border);
+}
+.dist-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.dist-head h2 { font: 400 16px var(--q-font-display); color: var(--q-accent); }
+.dist-headline { font-size: 14px; font-weight: 600; color: var(--q-text); }
+.dist-chart {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 2px;
+    height: 110px;
+    padding-top: 22px;
+    border-bottom: 1px solid var(--q-line);
+}
+.dist-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+    outline-offset: 2px;
+    cursor: default;
+}
+.dist-bar { display: block; width: min(24px, 100%); border-radius: 4px 4px 0 0; background: #7D77B8; }
+.dist-col.is-you .dist-bar { background: var(--q-row-1); }
+.dist-you { position: absolute; top: -20px; font: 600 12px var(--q-font-body); color: var(--q-text); white-space: nowrap; }
+.dist-col:hover .dist-bar, .dist-col:focus-visible .dist-bar { filter: brightness(1.15); }
+.dist-col::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    z-index: 3;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--q-ink);
+    color: var(--q-text);
+    font: 500 12px var(--q-font-mono);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+}
+.dist-col:hover::after, .dist-col:focus-visible::after { opacity: 1; }
+.dist-col:first-child::after { left: 0; transform: none; }
+.dist-col:last-child::after { left: auto; right: 0; transform: none; }
+.dist-axis { display: flex; justify-content: space-between; font: 500 12px var(--q-font-mono); color: var(--q-muted); }
+
 @media (max-width: 640px) {
     .board-page {
         flex-direction: column;

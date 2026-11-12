@@ -6,8 +6,8 @@ The site stays on Netlify and calls the function directly (CORS allows quindici.
 | Method | Path | Body / query | Returns |
 |---|---|---|---|
 | POST | `/daily/:n/start` | `{ playerId }` | `{ token, handle }` |
-| POST | `/daily/:n/finish` | `{ playerId, token, movesLog, hints, seconds }` | `{ score, rank, total, duplicate }` |
-| GET | `/daily/:n/leaderboard` | `?range=today\|week&limit=10&playerId=` | `{ rows, you, total }` |
+| POST | `/daily/:n/finish` | `{ playerId, token, movesLog, hints, seconds }` | `{ score, rank, below, total, duplicate }` |
+| GET | `/daily/:n/leaderboard` | `?range=today\|week&limit=10&playerId=` | `{ rows, you, total, buckets }` (`buckets`: today's scores in ten bands of 100) |
 | GET | `/player` | `?playerId=` | `{ handle }` |
 | PATCH | `/player` | `{ playerId, handle }` | `{ handle }` |
 
@@ -24,7 +24,7 @@ before tests and every deploy, so the server always uses the game's own scoring 
 npm install
 npm test                 # unit tests, no emulator
 npm run test:emulator    # end-to-end against the Functions + Firestore emulators
-npm run serve            # local emulators; API at http://127.0.0.1:5001/quindici-io/us-central1/api
+npm run serve            # local emulators (project demo-quindici); API at http://127.0.0.1:5001/demo-quindici/us-central1/api
 ```
 
 Emulator-only settings live in `.env.local` and `.secret.local` (git-ignored).

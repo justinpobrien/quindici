@@ -263,6 +263,9 @@
             this.clockStarted = false;
             this.elapsedMs = 0;
             this.result = null;
+            clearInterval(this.countdownTimer);
+            this.countdownDay = null;
+            $('solvedBeat').hidden = true;
 
             this.el.main.classList.remove('is-solved', 'is-message');
             this.el.boardWrap.classList.remove('is-solved');
@@ -674,15 +677,18 @@
                 : 'Free play · solved';
             $('againButton').textContent = daily ? 'Play again (practice)' : 'New game';
 
-            const footnote = daily
-                ? (this.practice && (!this.todayEntry || e.n !== this.todayEntry.n)
-                    ? 'Past dailies are practice. They do not change your results.'
-                    : nextDailyText(this.dailies, e.n))
-                : '';
-            this.el.solvedFooter.textContent = footnote;
-            this.el.solvedFooter.hidden = !footnote;
-            $('solvedFootnoteMobile').textContent = footnote;
-            $('solvedFootnoteMobile').hidden = !footnote;
+            const isToday = daily && this.todayEntry && e.n === this.todayEntry.n;
+            clearInterval(this.countdownTimer);
+            if (isToday && this.dailies.some(d => d.n === e.n + 1)) {
+                this.updateCountdown();
+                this.countdownTimer = setInterval(() => this.updateCountdown(), 1000);
+            } else {
+                const footnote = daily
+                    ? (isToday ? nextDailyText(this.dailies, e.n) : 'Past dailies are practice. They do not change your results.')
+                    : '';
+                this.setFootnote(footnote);
+            }
+            this.updateBeat();
 
             const hex = P.toHex(this.initialBoard);
             const watch = $('watchSolution');
@@ -753,8 +759,8 @@
             if (!r || r.server || !r.token || !window.Api) return;
             window.Api.finish(n, { token: r.token, movesLog: r.log, hints: r.hints, seconds: r.seconds })
                 .then((res) => {
-                    Store.updateResult(n, { server: { rank: res.rank, total: res.total, score: res.score }, token: undefined });
-                    this.updateRank(n, res.rank);
+                    Store.updateResult(n, { server: { rank: res.rank, total: res.total, below: res.below, score: res.score }, token: undefined });
+                    this.updateRank(n, { rank: res.rank, below: res.below, total: res.total });
                 })
                 .catch((error) => {
                     if (error.status >= 400 && error.status < 500) {
@@ -770,16 +776,60 @@
             if (!r || !window.Api) return;
             if (!r.server) { this.submit(n); return; }
             if (r.server.rejected) return;
-            window.Api.leaderboard(n, 'today', 1)
-                .then((lb) => { if (lb.you) this.updateRank(n, lb.you.rank); })
+            window.Api.leaderboard(n, 'today', 1, { distribution: false })
+                .then((lb) => { if (lb.you) this.updateRank(n, { rank: lb.you.rank, below: lb.you.below, total: lb.total }); })
                 .catch(() => {});
         }
 
-        updateRank(n, rank) {
+        updateRank(n, standing) {
             const r = Store.result(n);
-            if (r && r.server) Store.updateResult(n, { server: Object.assign({}, r.server, { rank }) });
+            if (r && r.server) Store.updateResult(n, { server: Object.assign({}, r.server, standing) });
             if (this.gameWon && this.entry && this.entry.n === n && !this.practice) {
                 $('solvedCaption').textContent = 'out of 1000' + this.rankText();
+                this.updateBeat();
+            }
+        }
+
+        // "Better than 72% of today's players", from how many finished scores are below yours.
+        updateBeat() {
+            const line = $('solvedBeat');
+            const r = this.mode === 'daily' && this.entry && !this.practice ? Store.result(this.entry.n) : null;
+            const s = r && r.server;
+            if (!s || s.rejected || typeof s.below !== 'number' || !s.total) {
+                line.hidden = true;
+                return;
+            }
+            line.textContent = s.total === 1
+                ? 'You are the first to finish today.'
+                : `Better than ${Math.floor(100 * s.below / (s.total - 1))}% of today's ${s.total} players.`;
+            line.hidden = false;
+        }
+
+        // Counts down to the next daily, which unlocks at the player's local midnight.
+        updateCountdown() {
+            const next = this.entry.n + 1;
+            const now = new Date();
+            const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const ms = midnight - now;
+            if (ms <= 0 || (this.countdownDay && this.countdownDay !== now.toDateString())) {
+                clearInterval(this.countdownTimer);
+                this.setFootnote(`Daily No. ${next} is out. <a href="./">Play it</a>`, true);
+                return;
+            }
+            this.countdownDay = this.countdownDay || now.toDateString();
+            this.setFootnote(`Daily No. ${next} unlocks in <span class="countdown">${formatCountdown(ms)}</span>, at midnight your time.`, true);
+        }
+
+        setFootnote(text, html = false) {
+            for (const el of [this.el.solvedFooter, $('solvedFootnoteMobile')]) {
+                // One wrapping element, so the footer's flex gap doesn't split the sentence.
+                el.textContent = '';
+                if (text) {
+                    const span = document.createElement('span');
+                    if (html) span.innerHTML = text; else span.textContent = text;
+                    el.appendChild(span);
+                }
+                el.hidden = !text;
             }
         }
 
@@ -1083,6 +1133,14 @@
         return dailies.some(d => d.n === n + 1)
             ? `Daily No. ${n + 1} unlocks at midnight, your time.`
             : 'That is the last daily for now. More are on the way.';
+    }
+
+    function formatCountdown(ms) {
+        const total = Math.ceil(ms / 1000);
+        const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+        if (h > 0) return `${h}h ${m < 10 ? '0' : ''}${m}m`;
+        if (m > 0) return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+        return `${s}s`;
     }
 
     function formatTime(seconds) {

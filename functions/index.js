@@ -1,8 +1,8 @@
 // Quindici leaderboard API: one HTTPS Cloud Function, `api`, implementing SPEC §9.
 //
 //   POST  /daily/:n/start        { playerId }                              → { token, handle }
-//   POST  /daily/:n/finish       { playerId, token, movesLog, hints, seconds } → { score, rank, total, duplicate }
-//   GET   /daily/:n/leaderboard  ?range=today|week&limit=10&playerId=…      → { rows, you, total }
+//   POST  /daily/:n/finish       { playerId, token, movesLog, hints, seconds } → { score, rank, below, total, duplicate }
+//   GET   /daily/:n/leaderboard  ?range=today|week&limit=10&playerId=…      → { rows, you, total, buckets }
 //   GET   /player                ?playerId=…                               → { handle }
 //   PATCH /player                { playerId, handle }                      → { handle }
 //
@@ -125,11 +125,25 @@ async function finish(entry, body) {
     const saved = (await ref.get()).data();
 
     const day = db.collection('results').where('n', '==', entry.n);
-    const [above, total] = await Promise.all([
+    const [above, below, total] = await Promise.all([
         day.where('score', '>', saved.score).count().get(),
+        day.where('score', '<', saved.score).count().get(),
         day.count().get(),
     ]);
-    return { score: saved.score, rank: above.data().count + 1, total: total.data().count, duplicate };
+    return {
+        score: saved.score, rank: above.data().count + 1, below: below.data().count,
+        total: total.data().count, duplicate,
+    };
+}
+
+// Today's scores in ten bands of 100 (the last band, 900–1000, includes 1000), from count queries
+// so a busy day costs a handful of reads rather than one per result.
+async function distribution(day) {
+    const counts = await Promise.all(Array.from({ length: 10 }, (_, i) => {
+        const hi = i === 9 ? 1001 : (i + 1) * 100;
+        return day.where('score', '>=', i * 100).where('score', '<', hi).count().get();
+    }));
+    return counts.map(c => c.data().count);
 }
 
 function rowFor(doc, rank, handles, playerId) {
@@ -156,14 +170,20 @@ async function leaderboard(entry, query) {
             day.count().get(),
         ]);
         const docs = top.docs.map(d => d.data());
-        let mine = null, myRank = null;
+        let mine = null, myRank = null, myBelow = null;
         if (playerId) {
             const snap = await db.collection('results').doc(`${entry.n}_${playerId}`).get();
             if (snap.exists) {
                 mine = snap.data();
-                myRank = (await day.where('score', '>', mine.score).count().get()).data().count + 1;
+                const [above, below] = await Promise.all([
+                    day.where('score', '>', mine.score).count().get(),
+                    day.where('score', '<', mine.score).count().get(),
+                ]);
+                myRank = above.data().count + 1;
+                myBelow = below.data().count;
             }
         }
+        const buckets = query.distribution === '0' ? null : await distribution(day);
         const handles = await handlesFor([...new Set(docs.map(d => d.playerId).concat(mine ? [playerId] : []))]);
 
         // Rank ties share a number: a row's rank is 1 + the number of higher scores.
@@ -172,8 +192,8 @@ async function leaderboard(entry, query) {
             const rank = i > 0 && d.score === docs[i - 1].score ? rows[i - 1].rank : i + 1;
             rows.push(rowFor(d, rank, handles, playerId));
         });
-        const you = mine ? rowFor(mine, myRank, handles, playerId) : null;
-        return { range, n: entry.n, par: entry.par, rows, you, total: total.data().count };
+        const you = mine ? { ...rowFor(mine, myRank, handles, playerId), below: myBelow } : null;
+        return { range, n: entry.n, par: entry.par, rows, you, total: total.data().count, buckets };
     }
 
     // This week: the sum of each player's scores over the last 7 dailies, ending at n.

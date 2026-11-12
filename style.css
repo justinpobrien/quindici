@@ -462,6 +462,9 @@ button.tile { cursor: pointer; }
 }
 .solved-number.is-long { font-size: 100px; }
 .solved-caption { font-size: 15px; color: var(--q-muted); }
+.solved-beat { font-size: 15px; font-weight: 600; color: var(--q-text); }
+.countdown { font-family: var(--q-font-mono); color: var(--q-text); font-variant-numeric: tabular-nums; }
+.solved-footer a, .solved-footnote a { color: var(--q-pace); text-decoration: underline; }
 .solved-actions { display: flex; flex-direction: column; gap: 14px; }
 .solved-mini { display: none; position: relative; }
 .solved-board {
@@ -705,6 +708,7 @@ button.tile { cursor: pointer; }
     .solved-text { min-width: 0; }
     .solved-mini { flex: none; }
     .solved-caption { font-size: 14px; }
+    .solved-beat { font-size: 14px; }
     .solved-mini { display: block; }
     .solved-actions { order: 6; margin-top: auto; }
     .result { order: 5; gap: 16px; }

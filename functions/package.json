@@ -9,8 +9,8 @@
   "scripts": {
     "sync": "node scripts/sync-shared.js",
     "test": "node scripts/sync-shared.js && node --test test/unit.test.js",
-    "serve": "node scripts/sync-shared.js && firebase emulators:start --only functions,firestore",
-    "test:emulator": "node scripts/sync-shared.js && firebase emulators:exec --only functions,firestore \"node --test test/api.test.js\"",
+    "serve": "node scripts/sync-shared.js && firebase emulators:start --project demo-quindici --only functions,firestore",
+    "test:emulator": "node scripts/sync-shared.js && firebase emulators:exec --project demo-quindici --only functions,firestore \"node --test test/api.test.js\"",
     "deploy": "firebase deploy --only functions,firestore"
   },
   "dependencies": {

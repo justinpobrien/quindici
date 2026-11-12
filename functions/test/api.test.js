@@ -4,7 +4,7 @@ const assert = require('node:assert');
 const crypto = require('crypto');
 const core = require('../core');
 
-const API = 'http://127.0.0.1:5001/quindici-io/us-central1/api';
+const API = 'http://127.0.0.1:5001/demo-quindici/us-central1/api';
 const D1 = core.daily(1), D2 = core.daily(2);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -99,4 +99,23 @@ test('leaderboard week sums the last 7 dailies', async () => {
     assert.strictEqual(lb.data.you.days, 2);
     assert.strictEqual(lb.data.you.rank, 1);
     assert.strictEqual(lb.data.total, 3);
+});
+
+test('distribution: ten bands that add up to the total, and how many you beat', async () => {
+    const lb = await call('GET', `/daily/1/leaderboard?range=today&playerId=${players[1]}`);
+    assert.strictEqual(lb.data.buckets.length, 10);
+    assert.strictEqual(lb.data.buckets.reduce((a, b) => a + b, 0), lb.data.total);
+    const scores = (await call('GET', '/daily/1/leaderboard?range=today&limit=50')).data.rows.map(r => r.score);
+    const mine = lb.data.you.score;
+    assert.strictEqual(lb.data.you.below, scores.filter(s => s < mine).length);
+    scores.forEach(s => assert.ok(lb.data.buckets[Math.min(9, Math.floor(s / 100))] > 0));
+    const skip = await call('GET', '/daily/1/leaderboard?range=today&distribution=0');
+    assert.strictEqual(skip.data.buckets, null);
+});
+
+test('finish reports how many scores are below yours', async () => {
+    const r = await play(D2, players[2], { extra: 30 });
+    assert.strictEqual(r.status, 200, JSON.stringify(r.data));
+    assert.strictEqual(r.data.below, 0);
+    assert.strictEqual(r.data.rank, r.data.total);
 });

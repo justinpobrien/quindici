@@ -4,7 +4,8 @@
     'use strict';
 
     const PROD = 'https://us-central1-quindici-io.cloudfunctions.net/api';
-    const EMULATOR = 'http://127.0.0.1:5001/quindici-io/us-central1/api';
+    // Local emulators run as the demo project, which needs no login and can never reach production.
+    const EMULATOR = 'http://127.0.0.1:5001/demo-quindici/us-central1/api';
     const PLAYER_KEY = 'quindici.player';
 
     // On a local server the emulator is used, unless ?api=prod is in the address.
@@ -70,8 +71,8 @@
         start: (n) => call('POST', `/daily/${n}/start`, { playerId: playerId() }),
         finish: (n, { token, movesLog, hints, seconds }) =>
             call('POST', `/daily/${n}/finish`, { playerId: playerId(), token, movesLog, hints, seconds }),
-        leaderboard: (n, range = 'today', limit = 10) =>
-            call('GET', `/daily/${n}/leaderboard?range=${range}&limit=${limit}&playerId=${encodeURIComponent(playerId())}`),
+        leaderboard: (n, range = 'today', limit = 10, { distribution = true } = {}) =>
+            call('GET', `/daily/${n}/leaderboard?range=${range}&limit=${limit}&playerId=${encodeURIComponent(playerId())}${distribution ? '' : '&distribution=0'}`),
         handle: () => call('GET', `/player?playerId=${encodeURIComponent(playerId())}`),
         setHandle: (handle) => call('PATCH', '/player', { playerId: playerId(), handle }),
     };

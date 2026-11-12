@@ -1,0 +1,13 @@
+{
+  "name": "quindici-tests",
+  "private": true,
+  "description": "Browser tests for the game and leaderboard (headless Chrome via puppeteer-core)",
+  "scripts": {
+    "test": "npm run test:daily && npm run test:leaderboard",
+    "test:daily": "node browser/daily.test.js",
+    "test:leaderboard": "cd ../functions && node scripts/sync-shared.js && firebase emulators:exec --project demo-quindici --only functions,firestore \"node ../tests/browser/leaderboard.test.js\""
+  },
+  "devDependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}
