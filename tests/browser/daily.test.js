@@ -107,7 +107,7 @@ const BEFORE = '2026-11-01';
         const s = Scoring.score({ par: D1.par, moves: D1.par + 2, seconds: res.seconds });
         const bar = (v) => { const f = Math.round(v * 10); return '▰'.repeat(f) + '▱'.repeat(10 - f); };
         const fmt = (sec) => { const x = Math.floor(sec); return `${Math.floor(x / 60)}:${String(x % 60).padStart(2, '0')}`; };
-        const want = `quindici #1 · ${s.score}\nprecision ${bar(s.precision)} ${D1.par + 2}/${D1.par}\npace      ${bar(s.pace)} ${fmt(res.seconds)}\n${base}/?daily=1`;
+        const want = `quindici #1 · ${s.score}\nprecision ${bar(s.precision)} ${D1.par + 2}/${D1.par}\npace      ${bar(s.pace)} ${fmt(res.seconds)}\n${base}/daily/1`;
         check('share text exact', (await p.$eval('#shareText', e => e.textContent)) === want);
         check('image card 1200×630', await p.$eval('#shareCard', e => e.naturalWidth === 1200 && e.naturalHeight === 630));
         await p.keyboard.press('Escape');
@@ -134,12 +134,26 @@ const BEFORE = '2026-11-01';
         check('solver locked before solving', (await text(p, '#title')) === 'Locked' && /stays locked/.test(await text(p, '#status')));
         await p.context.close();
 
-        // --- Future and past dailies
-        p = await open(`/?daily=2&today=${DAY1}`);
+        // --- Pretty links (/daily/N), future and past dailies
+        p = await open(`/daily/1?today=${DAY1}`);
+        check('/daily/1 today: the scored daily, styled', /Daily\s*No\. 1/.test(await text(p, '#title')) && await visible(p, '#startCover') &&
+            (await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(29, 26, 58)');
+        await p.keyboard.press('Enter');
+        const bp = await board(p);
+        await p.keyboard.press('s');
+        await p.waitForFunction((b) => Array.from(document.getElementById('board').children).map(c => Number(c.textContent) || 0).join() !== b, { timeout: 30000 }, bp.join());
+        check('/daily/1: hint worker loads from the root', true);
+        check('/daily/1: nav links resolve from the root', (await p.$eval('.site-nav a[data-nav="free"]', a => a.href)) === `${base}/?mode=free`);
+        await p.context.close();
+        p = await open(`/daily/2?today=${DAY1}`);
         check('future daily refused', /isn't out yet/.test(await text(p, '#messageTitle')));
         await p.context.close();
-        p = await open(`/?daily=1&today=${DAY2}`);
+        p = await open(`/daily/1?today=${DAY2}`);
         check('past daily is practice', /practice/.test(await text(p, '#eyebrow')) && hexOf(await board(p)) === D1.hex && !(await visible(p, '#startCover')));
+        await p.context.close();
+        p = await open(`/?daily=1&today=${DAY2}`);
+        check('old ?daily=1 links still work and tidy to /daily/1', (await p.evaluate(() => location.pathname + location.search)) === `/daily/1?today=${DAY2}` &&
+            /practice/.test(await text(p, '#eyebrow')));
         await p.context.close();
         p = await open(`/?today=${DAY2}`);
         check('next day: Daily No. 2', /No\. 2/.test(await text(p, '#title')) && await visible(p, '#startCover'));

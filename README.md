@@ -41,7 +41,7 @@ Share your result as spoiler-free text or as an image card:
 quindici #1 · 817
 precision ▰▰▰▰▰▰▰▰▰▱ 55/53
 pace      ▰▰▰▰▰▰▰▰▰▱ 1:03
-https://quindici.io/?daily=1
+https://quindici.io/daily/1
 ```
 
 ![Share card](assets/share-card.png)
@@ -114,7 +114,7 @@ Then open http://localhost:8000. A local server is required, because the daily b
 
 - `?today=YYYY-MM-DD` previews any day's daily (local servers only).
 - Locally, the leaderboard talks to the Firebase emulators (`cd functions && npm run serve`); add `?api=prod` to use the live API.
-- URLs: `/` today's daily, `/?daily=N` a past daily (practice), `/?mode=free` free play, `/?board=<hex>` free play on a given board.
+- URLs: `/` today's daily, `/daily/N` a specific daily (past ones are practice), `/?mode=free` free play, `/?board=<hex>` free play on a given board. `/daily/N` is a Netlify rewrite (`_redirects`), so on a plain local server use `/?daily=N` instead; older `?daily=N` links still work everywhere.
 - Local results, streaks and the in-progress daily are stored in `localStorage` under `quindici.v1`.
 - Tests (all run on every pull request by `.github/workflows/test.yml`):
   - `node --test tests/scoring.test.js`

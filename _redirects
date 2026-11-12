@@ -1,0 +1,5 @@
+# Netlify: pretty daily links. /daily/N serves the game, which reads N from the path (the address bar keeps /daily/N).
+/daily      /            301
+/daily/     /            301
+/daily/:n/  /index.html  200
+/daily/:n   /index.html  200
