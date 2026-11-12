@@ -116,7 +116,11 @@ Then open http://localhost:8000. A local server is required, because the daily b
 - Locally, the leaderboard talks to the Firebase emulators (`cd functions && npm run serve`); add `?api=prod` to use the live API.
 - URLs: `/` today's daily, `/?daily=N` a past daily (practice), `/?mode=free` free play, `/?board=<hex>` free play on a given board.
 - Local results, streaks and the in-progress daily are stored in `localStorage` under `quindici.v1`.
-- Tests: `node --test tests/scoring.test.js`, and in `functions/`: `npm test` and `npm run test:emulator`.
+- Tests (all run on every pull request by `.github/workflows/test.yml`):
+  - `node --test tests/scoring.test.js`
+  - in `functions/`: `npm test` (unit) and `npm run test:emulator` (API against the emulators)
+  - in `tests/`: `npm install`, then `npm run test:daily` and `npm run test:leaderboard` (headless Chrome; the leaderboard suite starts the emulators)
+- Local emulators use the `demo-quindici` project, which needs no login and never touches production. They read `functions/.secret.local` (`TOKEN_SECRET=anything`) and `functions/.env.local` (`QUINDICI_RELEASE_OFFSET_MS=34560000000`, so every daily counts as released).
 
 ## Upkeep: the daily boards
 

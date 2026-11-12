@@ -1,0 +1,62 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+      FIREBASE_TOOLS: firebase-tools@14.9.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            functions/package-lock.json
+            tests/package-lock.json
+
+      # The Firestore emulator needs Java.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: |
+          npm ci --prefix functions
+          npm ci --prefix tests
+
+      - name: Scoring tests
+        run: node --test tests/scoring.test.js
+
+      - name: Function unit tests
+        run: npm test --prefix functions
+
+      # Emulator-only settings (git-ignored locally): a throwaway token secret, and dailies treated as released.
+      - name: Emulator settings
+        run: |
+          echo "TOKEN_SECRET=ci-only-secret" > functions/.secret.local
+          echo "QUINDICI_RELEASE_OFFSET_MS=34560000000" > functions/.env.local
+
+      - name: API tests (emulators)
+        working-directory: functions
+        run: npx --yes $FIREBASE_TOOLS emulators:exec --project demo-quindici --only functions,firestore "node --test test/api.test.js"
+
+      - name: Leaderboard browser tests (emulators)
+        working-directory: functions
+        run: npx --yes $FIREBASE_TOOLS emulators:exec --project demo-quindici --only functions,firestore "node ../tests/browser/leaderboard.test.js"
+
+      - name: Daily browser tests
+        run: node tests/browser/daily.test.js

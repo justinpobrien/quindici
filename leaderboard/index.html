@@ -59,6 +59,15 @@
             </div>
             <p class="phone-footnote" id="footnote">Moves · time · score = 1000 × precision × pace</p>
 
+            <section class="dist-card" id="distCard" aria-labelledby="distTitle" hidden>
+                <div class="dist-head">
+                    <h2 id="distTitle">Today's scores</h2>
+                    <p class="dist-headline" id="distHeadline"></p>
+                </div>
+                <div class="dist-chart" id="distChart" role="list" aria-label="Players by score"></div>
+                <div class="dist-axis" aria-hidden="true"><span>0</span><span>500</span><span>1000</span></div>
+            </section>
+
             <div class="handle-card" id="handleCard">
                 <p class="handle-line" id="handleLine">Finish today's daily to join the leaderboard.</p>
                 <button type="button" class="q-btn btn-light handle-edit" id="handleEdit">Change name</button>

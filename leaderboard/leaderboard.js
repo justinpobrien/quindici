@@ -153,11 +153,52 @@
                 { href: '../', label: 'Play the daily' });
         }
 
+        renderDistribution(range === 'today' ? data : null);
+
         if (data.you) {
             // Rows show "You"; the handle itself comes from the player endpoint.
             if (!state.handle) loadHandle();
         }
         setHandleLine();
+    }
+
+    // ---------- distribution ----------
+
+    // Ten bands of 100; the highlighted band holds your score. Emphasis chart: one hue for you, gray for the rest.
+    function renderDistribution(data) {
+        const card = $('distCard');
+        if (!data || !Array.isArray(data.buckets) || !data.total) {
+            card.hidden = true;
+            return;
+        }
+        const buckets = data.buckets;
+        const max = Math.max(...buckets);
+        const mine = data.you ? Math.min(9, Math.floor(data.you.score / 100)) : -1;
+        const label = (i) => (i === 9 ? '900–1000' : `${i * 100}–${i * 100 + 99}`);
+        const players = (c) => `${c} ${c === 1 ? 'player' : 'players'}`;
+
+        const chart = $('distChart');
+        chart.textContent = '';
+        buckets.forEach((count, i) => {
+            const col = el('div', 'dist-col' + (i === mine ? ' is-you' : ''));
+            col.tabIndex = 0;
+            col.setAttribute('role', 'listitem');
+            col.dataset.tip = `${label(i)}: ${players(count)}`;
+            col.setAttribute('aria-label', col.dataset.tip + (i === mine ? ', your score' : ''));
+            if (i === mine) col.appendChild(el('span', 'dist-you', 'You')).setAttribute('aria-hidden', 'true');
+            const bar = el('span', 'dist-bar');
+            bar.style.height = count ? `${Math.max(4, Math.round(100 * count / max))}%` : '0';
+            col.appendChild(bar);
+            chart.appendChild(col);
+        });
+
+        const you = data.you;
+        $('distHeadline').textContent = !you
+            ? `${players(data.total)} so far.`
+            : data.total === 1
+                ? 'You are the first to finish.'
+                : `You beat ${Math.floor(100 * you.below / (data.total - 1))}% of ${data.total} players.`;
+        card.hidden = false;
     }
 
     // ---------- handle ----------
