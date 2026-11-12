@@ -141,7 +141,14 @@
 
             const today = todayKey();
             this.todayEntry = this.dailies.find(d => d.date === today) || null;
-            const wanted = params.get('daily');
+            // A specific daily: /daily/N (shared links), or the older /?daily=N, which is tidied to /daily/N.
+            const pathDaily = window.location.pathname.match(/^\/daily\/(\d+)\/?$/);
+            const wanted = pathDaily ? pathDaily[1] : params.get('daily');
+            if (!pathDaily && wanted !== null && /^\d+$/.test(wanted)) {
+                params.delete('daily');
+                const rest = params.toString();
+                history.replaceState(null, '', `/daily/${wanted}${rest ? '?' + rest : ''}`);
+            }
 
             if (wanted !== null) {
                 const n = parseInt(wanted, 10);
@@ -231,7 +238,7 @@
             if (this.mode !== 'free') return;
             if (this.fromUrl && !this.gameWon) return;
             this.fromUrl = false;
-            if (window.location.search !== '?mode=free') history.replaceState(null, '', '?mode=free');
+            if (window.location.pathname !== '/' || window.location.search !== '?mode=free') history.replaceState(null, '', '/?mode=free');
             this.startFree(P.shuffled());
         }
 
@@ -932,9 +939,9 @@
         shareInfo() {
             const r = this.result;
             const s = S.score({ par: this.par, moves: r.moves, hints: r.hints, seconds: r.seconds });
-            const base = window.location.origin + window.location.pathname;
+            const origin = window.location.origin;
             const daily = this.mode === 'daily' && this.entry;
-            const url = daily ? `${base}?daily=${this.entry.n}` : `${base}?board=${P.toHex(this.initialBoard)}`;
+            const url = daily ? `${origin}/daily/${this.entry.n}` : `${origin}/?board=${P.toHex(this.initialBoard)}`;
             const info = {
                 label: daily ? `#${this.entry.n}` : 'free play',
                 heading: daily ? `NO. ${this.entry.n} · ${shortDate(this.entry.date)}` : `FREE PLAY · ${shortDate(todayKey())}`,

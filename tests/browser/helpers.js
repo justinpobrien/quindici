@@ -10,12 +10,16 @@ const TYPES = {
     '.png': 'image/png', '.jpg': 'image/jpeg', '.gif': 'image/gif', '.mp4': 'video/mp4', '.svg': 'image/svg+xml',
 };
 
-// Serves the repo like Netlify does: /dir/ → /dir/index.html. Listens on 127.0.0.1 so the game treats it
+// Serves the repo like Netlify does: /dir/ → /dir/index.html, and /daily/N → /index.html (see _redirects).
+// Listens on 127.0.0.1 so the game treats it
 // as local (the ?today= override works and the leaderboard uses the emulator).
 function serve() {
     return new Promise((resolve) => {
         const server = http.createServer((req, res) => {
-            let file = path.join(ROOT, decodeURIComponent(new URL(req.url, 'http://x').pathname));
+            let pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+            // Like Netlify, a rewrite never shadows a file that exists (daily/boards.json).
+            if (/^\/daily\/[^/]+\/?$/.test(pathname) && !fs.existsSync(path.join(ROOT, pathname))) pathname = '/index.html';
+            let file = path.join(ROOT, pathname);
             if (file.startsWith(ROOT) && fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
             if (!file.startsWith(ROOT) || !fs.existsSync(file)) { res.writeHead(404); res.end(); return; }
             res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
