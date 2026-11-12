@@ -17,9 +17,14 @@
     <meta name="description" content="Quindici: a daily 15-puzzle. Everyone gets the same board each day, scored against the shortest possible solution. Free play, hints, and an optimal solver too.">
     <meta property="og:title" content="Quindici" />
     <meta property="og:description" content="The daily 15-puzzle. Same board for everyone, scored against par." />
-    <meta property="og:image" content="assets/preview-image.jpg" />
+    <meta property="og:image" content="https://quindici.io/assets/preview-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Quindici: the daily 15-puzzle" />
     <meta property="og:url" content="https://quindici.io" />
+    <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://quindici.io/assets/preview-image.jpg">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48x48.png">
@@ -67,7 +72,7 @@
             <p class="board-code" id="boardCodeLine" hidden>Board code <a class="mono" id="boardCode" href="./" title="Link to this board">…</a></p>
 
             <div class="actions">
-                <button type="button" class="q-btn btn-secondary" id="hintButton">Hint +3 moves</button>
+                <button type="button" class="q-btn btn-secondary" id="hintButton"><span>Hint +3<span class="hint-extra"> moves</span></span></button>
                 <button type="button" class="q-btn btn-light" id="pauseButton">Pause</button>
                 <button type="button" class="q-btn btn-primary" id="newGameButton" hidden>New game</button>
             </div>
@@ -123,8 +128,8 @@
             <div class="live" id="live">
                 <div class="stats">
                     <div class="stat-card">
-                        <div class="stat-label" id="movesLabel">Moves</div>
-                        <div class="stat-value"><span id="moveCounter">0</span><span class="stat-par" id="statPar"></span></div>
+                        <div class="stat-label stat-label-row"><span id="movesLabel">Moves</span><span class="stat-par" id="statPar"></span></div>
+                        <div class="stat-value" id="moveCounter">0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Time</div>

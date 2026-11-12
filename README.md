@@ -1,102 +1,26 @@
 # Quindici
-The Classic 15-Puzzle crafted by AI with a little human touch
+
+The daily 15-puzzle, crafted by AI with a little human touch. Play at **[quindici.io](https://quindici.io/)**.
+
+![Quindici](assets/preview-image.jpg)
 
 # **Introduction**
 
-The **15-puzzle**, also known as the **Game of Fifteen**, is a classic sliding puzzle that has intrigued enthusiasts since the late 19th century. Consisting of a 4x4 grid with 15 numbered square tiles and one empty space, the objective is to rearrange the tiles into sequential order, typically from 1 to 15, using the empty space to slide tiles into position. 
+The **15-puzzle**, also known as the **Game of Fifteen**, is a classic sliding puzzle that has intrigued enthusiasts since the late 19th century. Consisting of a 4x4 grid with 15 numbered square tiles and one empty space, the objective is to rearrange the tiles into sequential order, from 1 to 15, using the empty space to slide tiles into position.
 
 ![15-Puzzle](assets/board.png)
 
 Invented by Noyes Palmer Chapman in 1874, the puzzle gained immense popularity and sparked a global craze due to its deceptively simple design and challenging nature. It has since become a staple in the world of puzzles and continues to be a benchmark for problem-solving and algorithmic research.
 
-This project brings the timeless 15-puzzle to the digital realm, enhanced with modern features such as keyboard controls, a solve step hint system, and an optimal solver using the A* search algorithm.
+Quindici brings it to the web with a daily challenge scored against the shortest possible solution, a leaderboard, free play, hints, keyboard controls, and an optimal solver.
 
-![15-Puzzle](assets/game.png)
+**Colors show where each tile belongs.** Tiles 1–4 are pink, 5–8 yellow, 9–12 cyan and 13–15 lavender: each color is a row. A tile turns green once it is home, and a solved board is all green.
 
-## **Slide Multiple Tiles**
-
-Multiple tiles can be slid/shifted at once as long as the empty slot is within the same row or column. This functionality mirrors the physical movement in the traditional puzzle, allowing for more efficient and intuitive gameplay.
-
-- **Keyboard Shortcut**: Use **Shift + Arrow Key** to move multiple tiles with the keyboard.
-- **Mouse Control**: Click on a tile in the same row or column as the empty space to slide it (and any adjacent tiles) into the empty slot.
-
-
-## **Solve Step Button**
-
-Stuck on a challenging configuration? The **Solve Step** button offers assistance by suggesting the next move towards solving the puzzle. It utilizes a **greedy best-first search algorithm** to provide a helpful hint without revealing the entire solution path.
-
-- **Usage**: Click the **Solve Step** button once or multiple times to receive incremental hints.
-- **Note**: This feature does not guarantee the optimal path but guides you closer to the solution. For the optimal path, use the **15-Puzzle Solver** described below.
-
-## **Keyboard Shortcuts**
-
-To enhance the gameplay experience, the puzzle supports a variety of keyboard shortcuts for quick and efficient interaction:
-
-- **Arrow Keys (↑ ↓ ← →)**: Shift tiles into the empty space in the corresponding direction.
-- **Shift + Arrow Key**: Move multiple tiles into the empty space when aligned in the same row or column.
-- **a**: Start a new game.
-- **s**: Perform a solve step to get a hint.
-- **x**: Pause or unpause the game.
-- **f**: Open the solver to find the optimal solution.
-- **?**: Open the keyboard shortcut help menu.
-
-These shortcuts allow for seamless control and can significantly improve solving speed.
-
-## **Setting Board State**
-
-A board state can be passed as a URL parameter, enabling users to share specific puzzle configurations with others or save them for future play.
-
-The initial board state can be represented by an array. For example: `[15,0,14,13,3,6,8,5,12,2,7,4,11,9,10,1]`
-
-Which in turn can be represented as a hexadecimal string: `f0ed3685c274b9a1`
-
-When passed as a URL parameter (`https://quindici.io/?board=f0ed3685c274b9a1`), it will render the board state:
-
-![15-Puzzle Initial Board State](assets/board-state.png)
-
-
-### How to Share:
-  1. Arrange the puzzle to the desired state.
-  2. The 15-Puzzle Solver link always contains the URL parameter representing the current state of the board which can be copied and appended to the base URL. Or, if you've solved the puzzle, use the **Share Game** button.
-  3. Share the URL with others, who can load the same board state by accessing the link.
-
-This feature is perfect for:
-
-- **Challenging Friends**: Send a difficult puzzle to friends and see who can solve it faster.
-- **Resuming Later**: Save the link to continue solving at a later time.
-- **Analyzing Puzzles**: Pass the board state to the solver to study the optimal solution path.
-
-## **15-Puzzle Solver**
-
-The **15-Puzzle Solver** is a powerful tool designed to find the optimal solution for any valid puzzle configuration using the **A\*** (A-star) search algorithm.
-
-
-
-![15-Puzzle Solver Screenshot](assets/solver-screenshot.png)
-
-- **Features**:
-  - **Optimal Solution Path**: Calculates the minimum number of moves required to solve the puzzle.
-  - **Visualization**: Provides a step-by-step animation of the tiles moving into place.
-  - **Animated GIF**: Allows users to download an animated GIF of the solution process.
-  - **Move Count**: Displays the total number of moves in the optimal solution.
-
-- **Usage**:
-  1. Access the solver via the **Solver** link or by pressing the **f** key.
-  2. If you have a specific board state, include it in the URL or input it manually.
-  3. The solver will process the puzzle and present the optimal solution.
-
-Here's an example of an animated GIF of the solution path for the board state above:
-
-![15-Puzzle Solution Path Animation](assets/f0ed3685c274b9a1.gif)
-
-
-
-**Note**: The solver is an excellent resource for learning and understanding the strategies behind solving the 15-puzzle efficiently.
-
+![Free play](assets/game.png)
 
 ## **Daily Challenge**
 
-Everyone gets the same board each day, chosen by the player's local date. Each board's par (its shortest solution) is precomputed, and the score runs from 0 to 1000:
+Everyone gets the same board each day, chosen by the player's local date. The board stays hidden until you press **Start**, and the clock starts when it appears. Each board's **par** (its shortest solution) is precomputed, and your score runs from 0 to 1000:
 
 ```
 score     = round(1000 × precision × pace)
@@ -104,11 +28,97 @@ precision = (par / moves)²                  moves = tiles moved + 3 × hints
 pace      = ½ + ½ × 2^(−seconds / (3 × par))
 ```
 
-- `/` opens today's daily, `/?daily=N` a past one (practice, not scored), `/?mode=free` free play, and `/?board=<hex>` free play on a given board.
-- Results, streaks and the in-progress daily are stored in `localStorage` under `quindici.v1`.
-- Scoring tests: `node --test tests/scoring.test.js`.
+- **Moves matter most.** Precision is squared: 41% over par halves your score.
+- **Time can only halve it.** Pace loses half of its remaining bonus every 3 seconds per par move, and never drops below 50%.
+- **Every tile counts.** Sliding a whole row with Shift moves several tiles, and each one counts as a move.
+- **Your first finished attempt is the one that counts.** Playing again afterwards, or playing a past daily, is practice.
 
-### Upkeep: regenerate the daily boards
+![Daily solved](assets/daily.png)
+
+Share your result as spoiler-free text or as an image card:
+
+```
+quindici #1 · 817
+precision ▰▰▰▰▰▰▰▰▰▱ 55/53
+pace      ▰▰▰▰▰▰▰▰▰▱ 1:03
+https://quindici.io/?daily=1
+```
+
+![Share card](assets/share-card.png)
+
+## **Leaderboard**
+
+Finished dailies go to the [leaderboard](https://quindici.io/leaderboard/), with **Today** and **This week** (the total of your scores over the last seven dailies). You get an automatic name like `neon_otter_22`, which you can change from the leaderboard page. Before a result counts, the server replays your moves to check they solve the board and that the time is possible.
+
+## **Free Play and Shared Boards**
+
+[Free play](https://quindici.io/?mode=free) deals a random board and finds its par in the background, so it gets a live score too. Any board can be shared as a 16-character hex code. For example, the array `[7,5,8,6,10,12,3,15,0,11,1,2,9,4,14,13]` is `7586ac3f0b1294ed`, and `https://quindici.io/?board=7586ac3f0b1294ed` opens it:
+
+![Shared board on a phone](assets/board-state.png)
+
+## **Slide Multiple Tiles**
+
+Multiple tiles can slide at once when the empty square is in the same row or column, just like the physical puzzle.
+
+- **Keyboard**: **Shift + Arrow Key** slides the whole row or column.
+- **Mouse or touch**: tap any tile in line with the empty square to slide it along with the tiles between.
+
+## **Hints**
+
+Stuck? A **hint** (**S**) plays the next move of a shortest solution from wherever you are. Each hint adds 3 moves to your score.
+
+## **Keyboard Shortcuts**
+
+- **Arrow keys (↑ ↓ ← →)**: slide the tile next to the empty square into it.
+- **Shift + Arrow key**: slide the whole row or column.
+- **Enter**: start the daily.
+- **S**: hint.
+- **X**: pause or resume (pausing hides the board).
+- **A**: new game (free play).
+- **F**: open the solver for the current board (after you have solved the daily).
+- **?**: help.
+
+## **15-Puzzle Solver**
+
+The [solver](https://quindici.io/solver/) finds the optimal solution for any solvable board with **IDA\*** search (Manhattan distance plus linear conflict), then plays it back move by move.
+
+![15-Puzzle Solver](assets/solver-screenshot.png)
+
+- **Playback**: step through with the scrubber, Previous / Play / Next (or **← →**, **Space**, **Home**, **End**), at 1×, 2× or 4×.
+- **Move list**: one chip per move showing the tile to slide; the lifted tile on the board moves next.
+- **Animated GIF**: download the whole solution as a GIF.
+- **Play this board**: open the same board in free play.
+
+Today's daily stays locked in the solver until you have solved it.
+
+Here is the GIF for the board above (48 moves):
+
+![15-Puzzle Solution Path Animation](assets/7586ac3f0b1294ed.gif)
+
+# **Technology**
+
+- **Site**: static HTML, CSS and vanilla JavaScript with no build step, hosted on Netlify. Fonts: Bungee, Inter and JetBrains Mono.
+- **Solver**: IDA\* in a Web Worker (`solver/solverWorker.js`), shared by the solver page, hints and free-play par.
+- **Daily boards**: precomputed in `daily/boards.json`, each with its par and an optimal solution.
+- **Leaderboard**: a Firebase Cloud Function with Firestore (`functions/`, see `functions/README.md`).
+
+# **Running Locally**
+
+```bash
+git clone https://github.com/justinpobrien/quindici.git
+cd quindici
+python3 -m http.server 8000
+```
+
+Then open http://localhost:8000. A local server is required, because the daily boards are loaded with `fetch`.
+
+- `?today=YYYY-MM-DD` previews any day's daily (local servers only).
+- Locally, the leaderboard talks to the Firebase emulators (`cd functions && npm run serve`); add `?api=prod` to use the live API.
+- URLs: `/` today's daily, `/?daily=N` a past daily (practice), `/?mode=free` free play, `/?board=<hex>` free play on a given board.
+- Local results, streaks and the in-progress daily are stored in `localStorage` under `quindici.v1`.
+- Tests: `node --test tests/scoring.test.js`, and in `functions/`: `npm test` and `npm run test:emulator`.
+
+## Upkeep: the daily boards
 
 `daily/boards.json` covers **2026-11-11 to 2027-11-10** (Daily No. 1–365). Before it runs out, append the next year (takes about 15 minutes); dates and numbering continue automatically:
 
@@ -116,61 +126,10 @@ pace      = ½ + ½ × 2^(−seconds / (3 × par))
 node scripts/extend-daily.js --days 365
 ```
 
+Then redeploy the Cloud Function so the server knows the new boards: `firebase deploy --only functions`.
+
 The committed `daily/boards.json` is the source of truth. The generator is seeded by date, but it skips any candidate board that takes more than 4 seconds to solve, so a rerun on a different machine can occasionally pick a different (equally valid) board for a date. Never regenerate dates that are already live. (Boards No. 1–365 were generated for a 2026-12-01 start and moved 20 days earlier when launch moved to 2026-11-11, so regenerating those dates would not reproduce them.)
-
-# **Additional Information**
-
-## **Features**
-
-- **Responsive Design**: The game adapts to different screen sizes, ensuring a seamless experience on desktops, tablets, and mobile devices.
-- **Accessible Controls**: Both keyboard and mouse/touch inputs are supported, catering to various user preferences.
-- **Pause Functionality**: Pause the game at any time using the **x** key.
-- **Move Counter and Timer**: Keep track of your progress with a real-time move counter and timer.
-
-## **Technology Stack**
-
-- **Frontend**: HTML5, CSS3, and vanilla JavaScript.
-- **Algorithms**: Implementations of the A* search algorithm for the solver and greedy best-first search for solve steps.
-
-
-# **Installation**
-
-No installation is required to play the game. Simply access it via the web:
-
-```plaintext
-https://quindici.io/
-```
-
-To run the project locally:
-
-1. **Clone the Repository**:
-
-   ```bash
-   git clone https://github.com/justinpobrien/quindici.git
-   ```
-
-2. **Navigate to the Project Directory**:
-
-   ```bash
-   cd quindici
-   ```
-
-3. **Open `index.html` in Your Browser**
-
-4. **Optional - Run a Local Server**
-
-
-
-# **Usage**
-
-- **Starting a New Game**: Click the **New Game** button or press the **a** key.
-- **Moving Tiles**: Use the arrow keys or click/tap on the tiles adjacent to the empty space.
-- **Pause the Game**: Press the **x** key to pause or unpause.
-- **Access Keyboard Shortcuts**: Press the **?** key to view all available shortcuts.
-- **Solving the Puzzle**:
-  - **Step-by-Step Hints**: Use the **Solve Step** button or press **s**.
-  - **Optimal Solution**: Press **f** to open the solver for the current board state.
 
 # **License**
 
-This project is open-source and available under the [MIT License](LICENSE). You are free to use, modify, and distribute this software as per the license terms.
+This project is open source under the [MIT License](LICENSE.txt).
