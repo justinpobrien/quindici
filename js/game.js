@@ -1,5 +1,5 @@
 // game.js: the Quindici game: Daily challenge and Free play.
-// Depends on puzzle.js (Puzzle), scoring.js (Scoring), storage.js (QStorage) and share.js (Share).
+// Depends on puzzle.js (Puzzle), scoring.js (Scoring), storage.js (QStorage), share.js (Share) and api.js (Api).
 (function () {
     'use strict';
 
@@ -44,6 +44,7 @@
             this.hints = 0;
             this.log = [];              // tile numbers in the order they moved
             this.startedAt = null;
+            this.token = null;          // signed start token from the leaderboard API
 
             this.started = false;       // board revealed
             this.gameWon = false;
@@ -101,6 +102,7 @@
             P.renderCells($('goalBoard'), P.GOAL, { colorHome: false, labels: false });
             P.renderCells($('solvedMiniBoard'), P.GOAL, { solved: true, labels: false });
             this.bindEvents();
+            Store.pendingSubmissions().forEach(n => this.submit(n));
 
             const params = new URLSearchParams(window.location.search);
             const hex = params.get('board');
@@ -196,6 +198,8 @@
                 this.log = saved.log || [];
                 this.elapsedMs = saved.elapsedMs || 0;
                 this.startedAt = saved.startedAt || Date.now();
+                this.token = saved.token || null;
+                if (!this.token) this.requestToken();
                 this.started = true;
                 this.clockStarted = true;
                 this.paused = true;
@@ -252,6 +256,7 @@
             this.hints = 0;
             this.log = [];
             this.startedAt = null;
+            this.token = null;
             this.started = false;
             this.gameWon = false;
             this.paused = false;
@@ -624,7 +629,9 @@
             if (this.par) result.score = S.score({ par: this.par, moves: result.moves, hints: result.hints, seconds }).score;
 
             if (this.scored) {
+                result.token = this.token;
                 Store.saveResult(this.entry.n, result);
+                this.submit(this.entry.n);
                 track('daily_solved', { n: this.entry.n, score: result.score, moves: result.moves, seconds: Math.round(seconds), hints: result.hints });
             }
 
@@ -643,6 +650,7 @@
             this.started = true;
             this.gameWon = true;
             this.showResult(stored);
+            this.refreshRank(this.entry.n);
         }
 
         // Fills the solved screen. Works before par is known in Free play (score shows once it arrives).
@@ -693,7 +701,10 @@
             result.score = s.score;
             $('solvedScore').textContent = s.score;
             $('solvedScore').classList.toggle('is-long', String(s.score).length > 3);
-            $('solvedCaption').textContent = 'out of 1000' + (this.practice ? ' · practice, not counted' : '');
+            $('solvedCaption').textContent = 'out of 1000' + (this.practice ? ' · practice, not counted' : this.rankText());
+            const board = $('leaderboardLink');
+            board.hidden = !daily;
+            if (daily) board.href = 'leaderboard/?daily=' + e.n;
             watch.textContent = `Watch the ${this.par}-move solution`;
 
             const pr = Math.round(s.precision * 100), pa = Math.round(s.pace * 100);
@@ -717,6 +728,67 @@
             this.el.result.hidden = false;
         }
 
+        // ================= leaderboard =================
+
+        // Asks the API for a signed start token. Play never waits on it; offline play stays local.
+        requestToken() {
+            const n = this.entry && this.entry.n;
+            if (!n || !this.scored || !window.Api) return;
+            window.Api.start(n).then((r) => {
+                if (!this.entry || this.entry.n !== n || !this.scored) return;
+                this.token = r.token;
+                if (this.gameWon) {
+                    Store.updateResult(n, { token: r.token });
+                    this.submit(n);
+                } else {
+                    this.saveProgress();
+                }
+            }).catch((error) => console.warn('Leaderboard start failed:', error.message));
+        }
+
+        // Sends a stored result to the leaderboard. Network failures stay pending and retry on the next visit;
+        // a rejected result is marked so it is not retried.
+        submit(n) {
+            const r = Store.result(n);
+            if (!r || r.server || !r.token || !window.Api) return;
+            window.Api.finish(n, { token: r.token, movesLog: r.log, hints: r.hints, seconds: r.seconds })
+                .then((res) => {
+                    Store.updateResult(n, { server: { rank: res.rank, total: res.total, score: res.score }, token: undefined });
+                    this.updateRank(n, res.rank);
+                })
+                .catch((error) => {
+                    if (error.status >= 400 && error.status < 500) {
+                        Store.updateResult(n, { server: { rejected: error.message }, token: undefined });
+                    }
+                    console.warn('Leaderboard submit failed:', error.message);
+                });
+        }
+
+        // Ranks move as others finish, so a stored result fetches its current rank.
+        refreshRank(n) {
+            const r = Store.result(n);
+            if (!r || !window.Api) return;
+            if (!r.server) { this.submit(n); return; }
+            if (r.server.rejected) return;
+            window.Api.leaderboard(n, 'today', 1)
+                .then((lb) => { if (lb.you) this.updateRank(n, lb.you.rank); })
+                .catch(() => {});
+        }
+
+        updateRank(n, rank) {
+            const r = Store.result(n);
+            if (r && r.server) Store.updateResult(n, { server: Object.assign({}, r.server, { rank }) });
+            if (this.gameWon && this.entry && this.entry.n === n && !this.practice) {
+                $('solvedCaption').textContent = 'out of 1000' + this.rankText();
+            }
+        }
+
+        rankText() {
+            if (!this.entry || this.mode !== 'daily') return '';
+            const r = Store.result(this.entry.n);
+            return r && r.server && r.server.rank ? ` · ${ordinal(r.server.rank)} today` : '';
+        }
+
         saveProgress() {
             if (!this.scored || !this.started || this.gameWon || !this.entry) return;
             Store.saveProgress({
@@ -727,6 +799,7 @@
                 elapsedMs: this.elapsedNow(),
                 startedAt: this.startedAt,
                 log: this.log.slice(),
+                token: this.token,
             });
         }
 
@@ -768,6 +841,7 @@
             this.startClock();
             this.updateButtons();
             this.saveProgress();
+            this.requestToken();
             track('daily_start', { n: this.entry.n });
             this.el.board.focus({ preventScroll: true });
         }
@@ -966,6 +1040,11 @@
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+    function ordinal(n) {
+        const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
 
     // The player's local date picks the daily. On a local server, ?today=YYYY-MM-DD overrides it for testing.
     function todayKey() {

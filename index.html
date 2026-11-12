@@ -36,6 +36,7 @@
             <a href="./" data-nav="daily">Daily</a>
             <a href="./?mode=free" data-nav="free">Free play</a>
             <a href="solver/" class="js-solver-link">Solver</a>
+            <a href="leaderboard/">Leaderboard</a>
         </nav>
         <button type="button" class="help-button" id="helpButton" aria-haspopup="dialog" aria-label="How to play and keyboard shortcuts">?</button>
     </header>
@@ -86,6 +87,7 @@
                 <div class="solved-actions">
                     <button type="button" class="q-btn q-btn-lg btn-primary" id="shareButton">Share result</button>
                     <a class="q-btn q-btn-lg btn-pace" id="watchSolution" href="solver/">Watch the solution</a>
+                    <a class="link-button" id="leaderboardLink" href="leaderboard/" hidden>See the leaderboard</a>
                     <button type="button" class="link-button" id="againButton">Play again</button>
                     <p class="solved-footnote" id="solvedFootnoteMobile"></p>
                 </div>
@@ -186,6 +188,7 @@
         <a href="./" data-nav="daily"><span>Daily</span></a>
         <a href="./?mode=free" data-nav="free"><span>Free play</span></a>
         <a href="solver/" class="js-solver-link"><span>Solver</span></a>
+        <a href="leaderboard/"><span>Ranks</span></a>
     </nav>
 
     <dialog class="dialog" id="helpDialog" aria-labelledby="helpTitle">
@@ -248,6 +251,7 @@
     <script src="js/scoring.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/share.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

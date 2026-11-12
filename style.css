@@ -98,6 +98,7 @@ a.q-btn:hover { color: var(--q-ink); }
     cursor: pointer;
 }
 .link-button:hover { color: var(--q-text); }
+a.link-button { display: flex; align-items: center; justify-content: center; }
 
 /* ---------- header and navigation ---------- */
 

@@ -36,3 +36,10 @@ Emulator-only settings live in `.env.local` and `.secret.local` (git-ignored).
 3. `firebase deploy --only functions,firestore` from the repo root.
 
 Keep `firebase-functions` on v6: v7 does not load in the installed Firebase CLI's emulator.
+
+## The site's client
+
+`js/api.js` talks to the deployed function. On a local server (localhost or 127.0.0.1) it uses the
+emulator instead; add `?api=prod` to the address to use production. The game gets a start token
+when the daily is revealed, submits when it is solved, and retries on the next visit if offline.
+The leaderboard page is `leaderboard/` (`?daily=N`, `?range=week`).

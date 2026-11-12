@@ -1,6 +1,6 @@
 // storage.js: local stats and the in-progress daily, in localStorage under `quindici.v1`.
-// Shape: { results: { [n]: { moves, hints, seconds, score, solvedAt, log } },
-//          inProgress: { n, board, moves, hints, elapsedMs, startedAt, log } | null,
+// Shape: { results: { [n]: { moves, hints, seconds, score, solvedAt, log, token?, server? } },
+//          inProgress: { n, board, moves, hints, elapsedMs, startedAt, log, token } | null,
 //          streak: { current, best, lastN } }
 // Every access is wrapped: private windows and blocked storage must never break the game.
 (function (global) {
@@ -65,6 +65,21 @@
                 s.lastN = n;
             });
         },
+    };
+
+    // Merges fields into a stored result (server rank, submission state).
+    Storage.updateResult = function (n, fields) {
+        update(d => {
+            if (!d.results[n]) return;
+            Object.assign(d.results[n], fields);
+            for (const k of Object.keys(fields)) if (fields[k] === undefined) delete d.results[n][k];
+        });
+    };
+
+    // Results solved here that still need to reach the leaderboard.
+    Storage.pendingSubmissions = function () {
+        const results = load().results;
+        return Object.keys(results).map(Number).filter(n => results[n].token && !results[n].server);
     };
 
     global.QStorage = Storage;
