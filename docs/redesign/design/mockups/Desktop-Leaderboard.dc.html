@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quindici daily leaderboard and scoring</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2BCE8;text-decoration:none}a:hover{color:#FFF6E5}
+</style>
+</helmet>
+<div style="min-height: 820px; box-sizing: border-box; background-color: #1D1A3A; background-image: linear-gradient(#2A2654 1px, transparent 1px), linear-gradient(90deg, #2A2654 1px, transparent 1px); background-size: 40px 40px; color: #FFF6E5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 14px 32px; background: #1D1A3A; border-bottom: 3px solid #120F26">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; color: #FFF6E5; font: 400 22px Bungee, 'Arial Black', sans-serif"><span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; box-sizing: border-box; border-radius: 8px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px">15</span>quindici</a>
+<nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Daily</a>
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Free play</a>
+<a href="Desktop-Solver.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Solver</a>
+<a href="Desktop-Leaderboard.dc.html" aria-current="page" style="padding: 10px 16px; border-radius: 10px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px; font-weight: 600">Leaderboard</a>
+</nav>
+<button aria-label="Keyboard shortcuts" style="width: 44px; height: 44px; border-radius: 10px; border: 3px solid #120F26; background: #8DE8EC; box-shadow: 3px 3px 0 #120F26; color: #120F26; font: 400 16px Bungee, 'Arial Black', sans-serif; cursor: pointer">?</button>
+</header>
+<main style="flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 48px; width: 100%; max-width: 1180px; margin: 0 auto; box-sizing: border-box; padding: 40px 32px">
+<section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font: 500 13px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #8DE8EC">DAILY NO. 1 · PAR 48</div>
+<h1 style="margin: 0; font: 400 40px/1 Bungee, 'Arial Black', sans-serif; color: #FFE27A; text-shadow: 4px 4px 0 #120F26">Today's leaderboard</h1>
+</div>
+<div role="group" aria-label="Range" style="display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: #120F26">
+<button aria-pressed="true" style="height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 8px; border: 2px solid #120F26; background: #FFE27A; color: #120F26; font: 600 14px Inter, system-ui, sans-serif; cursor: pointer">Today</button>
+<button aria-pressed="false" style="height: 44px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #C2BCE8; font: 600 14px Inter, system-ui, sans-serif; cursor: pointer">This week</button>
+<button aria-pressed="false" style="height: 44px; padding: 0 14px; border-radius: 8px; border: 0; background: transparent; color: #C2BCE8; font: 600 14px Inter, system-ui, sans-serif; cursor: pointer">Friends</button>
+</div>
+</div>
+<div style="overflow-x: auto; padding: 0 6px 6px 0">
+<div style="min-width: 460px; padding: 8px; border-radius: 14px; background: #2A2654; border: 3px solid #120F26; box-shadow: 6px 6px 0 #120F26; display: flex; flex-direction: column">
+<div aria-hidden="true" style="display: grid; grid-template-columns: 48px minmax(0, 1fr) 96px 72px 72px; align-items: center; column-gap: 12px; padding: 0 12px; height: 38px; font-size: 13px; color: #C2BCE8">
+<span>#</span><span>Player</span><span style="text-align: right">Moves</span><span style="text-align: right">Time</span><span style="text-align: right">Score</span>
+</div>
+<ol aria-label="Rankings" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: 15px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<sc-if value="{{r.other}}" hint-placeholder-val="{{true}}">
+<li style="display: grid; grid-template-columns: 48px minmax(0, 1fr) 96px 72px 72px; align-items: center; column-gap: 12px; padding: 0 12px; height: 48px; border-top: 2px solid #1D1A3A">
+<span><sc-if value="{{r.top}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; box-sizing: border-box; border-radius: 8px; background: {{r.chip}}; border: 2px solid #120F26; color: #120F26; font: 500 13px 'JetBrains Mono', ui-monospace, monospace">{{r.rank}}</span></sc-if><sc-if value="{{r.plain}}" hint-placeholder-val="{{true}}"><span style="font: 500 14px 'JetBrains Mono', ui-monospace, monospace; color: #C2BCE8">{{r.rank}}</span></sc-if></span>
+<span style="font-weight: 500">{{r.name}}</span>
+<span style="text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{r.moves}} <span style="color: #C2BCE8">{{r.over}}</span></span>
+<span style="text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{r.time}}</span>
+<span style="text-align: right; font: 400 18px Bungee, 'Arial Black', sans-serif; color: #FFE27A">{{r.score}}</span>
+</li>
+</sc-if>
+<sc-if value="{{r.you}}" hint-placeholder-val="{{false}}">
+<li aria-current="true" style="display: grid; grid-template-columns: 48px minmax(0, 1fr) 96px 72px 72px; align-items: center; column-gap: 12px; padding: 0 12px; height: 50px; margin: 4px 0; box-sizing: border-box; border-radius: 10px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26">
+<span style="font: 500 14px 'JetBrains Mono', ui-monospace, monospace">{{r.rank}}</span>
+<span style="font-weight: 600">You</span>
+<span style="text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{r.moves}} {{r.over}}</span>
+<span style="text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace">{{r.time}}</span>
+<span style="text-align: right; font: 400 18px Bungee, 'Arial Black', sans-serif">{{r.score}}</span>
+</li>
+</sc-if>
+</sc-for>
+</ol>
+</div>
+</div>
+</section>
+<aside style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 26px; border-radius: 20px; background: #2A2654; border: 3px solid #120F26; box-shadow: 6px 6px 0 #120F26; display: flex; flex-direction: column; gap: 18px">
+<h2 style="margin: 0; font: 400 22px Bungee, 'Arial Black', sans-serif; color: #FFE27A; text-shadow: 2px 2px 0 #120F26">How the score works</h2>
+<div style="padding: 16px; border-radius: 12px; background: #120F26; font: 500 14px/1.9 'JetBrains Mono', ui-monospace, monospace">
+<div>score = 1000 × <span style="color: #FF9EC7">precision</span> × <span style="color: #8DE8EC">pace</span></div>
+<div><span style="color: #FF9EC7">precision</span> = (par ÷ moves)²</div>
+<div><span style="color: #8DE8EC">pace</span> = ½ + ½ × 2<sup>−seconds ÷ (3 × par)</sup></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; line-height: 1.5; color: #C2BCE8">
+<p style="margin: 0; text-wrap: pretty"><strong style="color: #FFF6E5; font-weight: 600">Par is the true minimum.</strong> Every daily board is solved optimally ahead of time, so 1000 needs a perfect solve at instant speed.</p>
+<p style="margin: 0; text-wrap: pretty"><strong style="color: #FFF6E5; font-weight: 600">Moves matter most.</strong> Precision is squared. At 41% over par it has already halved your score.</p>
+<p style="margin: 0; text-wrap: pretty"><strong style="color: #FFF6E5; font-weight: 600">Time can only halve it.</strong> Pace loses half of its remaining bonus every 3 seconds per par move (2:24 today) and never falls below 50%.</p>
+<p style="margin: 0; text-wrap: pretty"><strong style="color: #FFF6E5; font-weight: 600">Hints cost 3 moves.</strong> Pausing hides the board.</p>
+</div>
+</aside>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+var par = 48;
+var CH = ['#FFE27A', '#8DE8EC', '#C9B3FF'];
+var D = [['nico',48,74],['tessera',50,61],['halfstep',48,131],['mk_slides',50,88],['ortho',52,97],['lento',48,212],['paritybit',54,83],['you',56,96],['blank16',58,70],['rowmajor',56,142]];
+var rows = D.map(function (d) { var s = Math.round(1000 * Math.pow(par / d[1], 2) * (0.5 + 0.5 * Math.pow(2, -d[2] / (3 * par)))); var sec = d[2] % 60;
+return { name: d[0], moves: d[1], over: d[1] === par ? 'par' : '+' + (d[1] - par), time: Math.floor(d[2] / 60) + ':' + (sec < 10 ? '0' : '') + sec, score: s, you: d[0] === 'you', other: d[0] !== 'you' }; });
+rows.sort(function (a, b) { return b.score - a.score; });
+rows.forEach(function (r, i) { r.rank = i + 1; r.top = i < 3; r.plain = i >= 3; r.chip = CH[i] || ''; });
+return { rows: rows };
+}
+}
+</script>
+</body>
+</html>

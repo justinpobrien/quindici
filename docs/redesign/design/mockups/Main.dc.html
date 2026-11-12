@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quindici daily puzzle, initial board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2BCE8;text-decoration:none}a:hover{color:#FFF6E5}
+</style>
+</helmet>
+<div style="min-height: 820px; box-sizing: border-box; background-color: #1D1A3A; background-image: linear-gradient(#2A2654 1px, transparent 1px), linear-gradient(90deg, #2A2654 1px, transparent 1px); background-size: 40px 40px; color: #FFF6E5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 14px 32px; background: #1D1A3A; border-bottom: 3px solid #120F26">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; color: #FFF6E5; font: 400 22px Bungee, 'Arial Black', sans-serif"><span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; box-sizing: border-box; border-radius: 8px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px">15</span>quindici</a>
+<nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" aria-current="page" style="padding: 10px 16px; border-radius: 10px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px; font-weight: 600">Daily</a>
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Free play</a>
+<a href="Desktop-Solver.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Solver</a>
+<a href="Desktop-Leaderboard.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Leaderboard</a>
+</nav>
+<button aria-label="Keyboard shortcuts" style="width: 44px; height: 44px; border-radius: 10px; border: 3px solid #120F26; background: #8DE8EC; box-shadow: 3px 3px 0 #120F26; color: #120F26; font: 400 16px Bungee, 'Arial Black', sans-serif; cursor: pointer">?</button>
+</header>
+<main style="flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 56px; width: 100%; max-width: 1180px; margin: 0 auto; box-sizing: border-box; padding: 40px 32px">
+<section style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 20px">
+<div style="font: 500 13px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #8DE8EC">WED 11 NOV 2026</div>
+<h1 style="margin: 0; font: 400 52px/1 Bungee, 'Arial Black', sans-serif; color: #FFE27A; text-shadow: 4px 4px 0 #120F26">Daily<br>No. 1</h1>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #2A2654; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26">
+<div style="display: flex; align-items: center; gap: 14px">
+<div role="img" aria-label="Goal: tiles 1 to 15 in order, empty square last" style="flex: none; width: 76px; height: 76px; box-sizing: border-box; padding: 4px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 3px; background: #120F26; border-radius: 8px">
+<sc-for list="{{goal}}" as="g" hint-placeholder-count="16">
+<sc-if value="{{g.blank}}" hint-placeholder-val="{{false}}"><div style="border-radius: 3px; background: #1D1A3A"></div></sc-if>
+<sc-if value="{{g.tile}}" hint-placeholder-val="{{true}}"><div style="display: flex; align-items: center; justify-content: center; border-radius: 3px; background: {{g.bg}}; color: #120F26; font: 400 9px Bungee, 'Arial Black', sans-serif">{{g.n}}</div></sc-if>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><div style="font: 400 16px Bungee, 'Arial Black', sans-serif; color: #FFE27A">The goal</div><p style="margin: 0; font-size: 14px; line-height: 1.45; color: #FFF6E5; text-wrap: pretty">Slide the tiles into order, 1 to 15, left to right from the top-left corner. The empty square ends up last.</p></div>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #C2BCE8; text-wrap: pretty">Each color is a row: pink tiles belong in row one, yellow in row two, and so on. A tile turns green once it is home.</p>
+</div>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #C2BCE8">Shortest solution today: <strong style="color: #8DE8EC; font-weight: 600">48 moves</strong>.</p>
+<div style="display: flex; gap: 14px; flex-wrap: wrap">
+<button style="height: 48px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #C9B3FF; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer">Hint +3 moves</button>
+<button style="height: 48px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #FFF6E5; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 15px Inter, system-ui, sans-serif; cursor: pointer">Pause</button>
+</div>
+</section>
+<div role="group" aria-label="Puzzle board" style="flex: 0 1 460px; width: 100%; max-width: 460px; aspect-ratio: 1 / 1; box-sizing: border-box; padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 12px; background: #2A2654; border: 3px solid #120F26; border-radius: 22px; box-shadow: 8px 8px 0 #120F26">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="16">
+<sc-if value="{{t.blank}}" hint-placeholder-val="{{false}}"><div style="box-sizing: border-box; border-radius: 12px; background: #1D1A3A; border: 3px dashed #4A4585"></div></sc-if>
+<sc-if value="{{t.tile}}" hint-placeholder-val="{{true}}"><button aria-label="{{t.label}}" style="min-width: 0; padding: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 3px solid #120F26; border-radius: 12px; background: {{t.bg}}; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 400 40px Bungee, 'Arial Black', sans-serif; cursor: pointer">{{t.n}}</button></sc-if>
+</sc-for>
+</div>
+<section style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<div style="padding: 14px; border-radius: 14px; background: #2A2654; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 13px; color: #C2BCE8">Moves</div>
+<div style="font: 500 28px 'JetBrains Mono', ui-monospace, monospace">0<span style="font-size: 13px; color: #8DE8EC"> / par 48</span></div>
+</div>
+<div style="padding: 14px; border-radius: 14px; background: #2A2654; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 13px; color: #C2BCE8">Time</div>
+<div style="font: 500 28px 'JetBrains Mono', ui-monospace, monospace">0:00</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #C2BCE8">Precision</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace">100%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 100%; height: 10px; border-radius: 5px; background: #FF9EC7"></div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #C2BCE8">Pace</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace">100%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 100%; height: 10px; border-radius: 5px; background: #8DE8EC"></div></div>
+</div>
+</div>
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding-top: 20px; border-top: 3px solid #120F26">
+<span style="font-size: 13px; color: #C2BCE8">Score if solved now</span>
+<span style="font: 400 38px Bungee, 'Arial Black', sans-serif; color: #FFE27A; text-shadow: 3px 3px 0 #120F26">1000</span>
+</div>
+</section>
+</main>
+<footer style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 14px 32px 22px; font-size: 13px; color: #C2BCE8">
+<span><kbd style="padding: 2px 7px; border-radius: 6px; background: #2A2654; border: 2px solid #120F26; font: 500 12px 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">← ↑ ↓ →</kbd> slide a tile</span>
+<span><kbd style="padding: 2px 7px; border-radius: 6px; background: #2A2654; border: 2px solid #120F26; font: 500 12px 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">Shift + arrow</kbd> slide the row</span>
+<span><kbd style="padding: 2px 7px; border-radius: 6px; background: #2A2654; border: 2px solid #120F26; font: 500 12px 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">S</kbd> hint</span>
+<span><kbd style="padding: 2px 7px; border-radius: 6px; background: #2A2654; border: 2px solid #120F26; font: 500 12px 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">X</kbd> pause</span>
+<span><kbd style="padding: 2px 7px; border-radius: 6px; background: #2A2654; border: 2px solid #120F26; font: 500 12px 'JetBrains Mono', ui-monospace, monospace; color: #FFF6E5">F</kbd> solver</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+var ROW = ['#FF9EC7', '#FFE27A', '#8DE8EC', '#C9B3FF'];
+var B = [7, 5, 8, 6, 10, 12, 3, 15, 0, 11, 1, 2, 9, 4, 14, 13];
+var NEXT = 0;
+var tiles = B.map(function (n, i) { var home = n !== 0 && n === i + 1; return { n: n, blank: n === 0, next: n !== 0 && n === NEXT, tile: n !== 0 && n !== NEXT, bg: n === 0 ? '' : (home ? '#8EF0A8' : ROW[Math.floor((n - 1) / 4)]), label: 'Tile ' + n + (home ? ', in place' : '') }; });
+var G = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+var goal = G.map(function (n) { return { n: n, blank: n === 0, tile: n !== 0, bg: n === 0 ? '' : ROW[Math.floor((n - 1) / 4)] }; });
+var done = G.map(function (n) { return { n: n, blank: n === 0, tile: n !== 0, bg: '#8EF0A8' }; });
+return { tiles: tiles, goal: goal };
+}
+}
+</script>
+</body>
+</html>

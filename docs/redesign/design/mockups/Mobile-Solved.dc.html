@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quindici mobile, daily solved</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2BCE8;text-decoration:none}a:hover{color:#FFF6E5}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background-color: #1D1A3A; background-image: linear-gradient(#2A2654 1px, transparent 1px), linear-gradient(90deg, #2A2654 1px, transparent 1px); background-size: 32px 32px; color: #FFF6E5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: #1D1A3A; border-bottom: 3px solid #120F26">
+<a href="Mobile-Start.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; color: #FFF6E5; font: 400 19px Bungee, 'Arial Black', sans-serif"><span style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; box-sizing: border-box; border-radius: 8px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 13px">15</span>quindici</a>
+<button aria-label="How to play" style="width: 44px; height: 44px; border-radius: 10px; border: 3px solid #120F26; background: #8DE8EC; box-shadow: 3px 3px 0 #120F26; color: #120F26; font: 400 16px Bungee, 'Arial Black', sans-serif; cursor: pointer">?</button>
+</header>
+<main style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 20px; padding: 16px 16px 16px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font: 500 12px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #8DE8EC">DAILY NO. 1 · SOLVED</div>
+<div style="font: 400 96px/0.9 Bungee, 'Arial Black', sans-serif; color: #8EF0A8; text-shadow: 5px 5px 0 #120F26">599</div>
+<div style="font-size: 14px; color: #C2BCE8">out of 1000 · 8th today</div>
+</div>
+<div style="position: relative">
+<div role="img" aria-label="Solved board" style="flex: none; width: 124px; height: 124px; box-sizing: border-box; padding: 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px; background: #245C47; border-radius: 9px; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26">
+<sc-for list="{{done}}" as="g" hint-placeholder-count="16">
+<sc-if value="{{g.blank}}" hint-placeholder-val="{{false}}"><div style="border-radius: 4px; background: #1D1A3A"></div></sc-if>
+<sc-if value="{{g.tile}}" hint-placeholder-val="{{true}}"><div style="display: flex; align-items: center; justify-content: center; border-radius: 4px; background: {{g.bg}}; color: #120F26; font: 400 12px Bungee, 'Arial Black', sans-serif">{{g.n}}</div></sc-if>
+</sc-for>
+</div>
+<div style="position: absolute; top: -14px; right: -8px; padding: 4px 8px; border-radius: 7px; background: #FFE27A; border: 2px solid #120F26; box-shadow: 2px 2px 0 #120F26; color: #120F26; font: 400 12px Bungee, 'Arial Black', sans-serif; transform: rotate(6deg)">Solved!</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Precision</span><span style="font: 500 22px 'JetBrains Mono', ui-monospace, monospace">74%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 74%; height: 10px; border-radius: 5px; background: #FF9EC7"></div></div>
+<div style="font-size: 13px; line-height: 1.45; color: #C2BCE8">56 moves against a par of 48. That is 8 over.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Pace</span><span style="font: 500 22px 'JetBrains Mono', ui-monospace, monospace">82%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 82%; height: 10px; border-radius: 5px; background: #8DE8EC"></div></div>
+<div style="font-size: 13px; line-height: 1.45; color: #C2BCE8">Solved in 1:36. Pace never drops below 50%.</div>
+</div>
+</div>
+<div style="padding: 14px 16px; border-radius: 12px; background: #120F26; font: 500 13px/1.8 'JetBrains Mono', ui-monospace, monospace">
+<div style="color: #C2BCE8">1000 × <span style="color: #FF9EC7">precision</span> × <span style="color: #8DE8EC">pace</span></div>
+<div>1000 × 0.735 × 0.815 = <span style="color: #8EF0A8">599</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px; margin-top: auto">
+<a href="Mobile-Share.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer">Share result</a>
+<a href="Mobile-Solver.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #8DE8EC; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer">Watch the 48-move solution</a>
+<div style="font-size: 13px; text-align: center; color: #C2BCE8">Daily No. 2 unlocks at midnight, your time.</div>
+</div>
+</main>
+<nav aria-label="Main" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #1D1A3A; border-top: 3px solid #120F26">
+<a href="Mobile-Start.dc.html" aria-current="page" style="display: flex; align-items: center; justify-content: center; height: 60px; font-size: 14px; font-weight: 600"><span style="padding: 6px 10px; border-radius: 8px; background: #FFE27A; border: 2px solid #120F26; box-shadow: 2px 2px 0 #120F26; color: #120F26">Daily</span></a>
+<a href="Mobile-Start.dc.html" style="display: flex; align-items: center; justify-content: center; height: 60px; font-size: 14px; font-weight: 500">Free play</a>
+<a href="Mobile-Solver.dc.html" style="display: flex; align-items: center; justify-content: center; height: 60px; font-size: 14px; font-weight: 500">Solver</a>
+<a href="Mobile-Leaderboard.dc.html" style="display: flex; align-items: center; justify-content: center; height: 60px; font-size: 14px; font-weight: 500">Ranks</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+var ROW = ['#FF9EC7', '#FFE27A', '#8DE8EC', '#C9B3FF'];
+var G = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+var goal = G.map(function (n) { return { n: n, blank: n === 0, tile: n !== 0, bg: n === 0 ? '' : ROW[Math.floor((n - 1) / 4)] }; });
+var done = G.map(function (n) { return { n: n, blank: n === 0, tile: n !== 0, bg: '#8EF0A8' }; });
+return { done: done };
+}
+}
+</script>
+</body>
+</html>

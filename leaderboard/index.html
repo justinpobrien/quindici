@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9VPWQYV9ZZ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9VPWQYV9ZZ');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1D1A3A">
+    <title>Leaderboard - Quindici</title>
+    <meta name="description" content="Today's Quindici daily leaderboard and this week's totals.">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48x48.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+    <link rel="stylesheet" href="../tokens.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-leaderboard">
+    <header class="site-header">
+        <a class="logo" href="../"><span class="logo-mark" aria-hidden="true">15</span>quindici</a>
+        <nav class="site-nav" aria-label="Main">
+            <a href="../">Daily</a>
+            <a href="../?mode=free">Free play</a>
+            <a href="../solver/">Solver</a>
+            <a href="./" aria-current="page">Leaderboard</a>
+        </nav>
+        <button type="button" class="help-button" id="helpButton" aria-haspopup="dialog" aria-label="How the score works">?</button>
+    </header>
+
+    <main class="board-page">
+        <section class="ranks" aria-labelledby="title">
+            <div class="ranks-head">
+                <div class="ranks-heading">
+                    <div class="eyebrow" id="eyebrow">&nbsp;</div>
+                    <h1 class="ranks-title" id="title">Leaderboard</h1>
+                </div>
+                <div class="segmented" role="group" aria-label="Range">
+                    <button type="button" aria-pressed="true" data-range="today">Today</button>
+                    <button type="button" aria-pressed="false" data-range="week">This week</button>
+                </div>
+            </div>
+
+            <div class="table-scroll">
+                <div class="table" id="table">
+                    <div class="table-head" aria-hidden="true" id="tableHead"></div>
+                    <ol class="rows" id="rows" aria-label="Rankings"></ol>
+                    <p class="table-message" id="tableMessage" hidden></p>
+                </div>
+            </div>
+            <p class="phone-footnote" id="footnote">Moves · time · score = 1000 × precision × pace</p>
+
+            <div class="handle-card" id="handleCard">
+                <p class="handle-line" id="handleLine">Finish today's daily to join the leaderboard.</p>
+                <button type="button" class="q-btn btn-light handle-edit" id="handleEdit">Change name</button>
+                <form class="handle-form" id="handleForm" hidden novalidate>
+                    <label for="handleInput" class="field-label">Your name on the leaderboard</label>
+                    <div class="handle-row">
+                        <input id="handleInput" type="text" autocomplete="nickname" autocapitalize="none" spellcheck="false" maxlength="20" aria-describedby="handleHelp">
+                        <button type="submit" class="q-btn btn-primary">Save</button>
+                        <button type="button" class="q-btn btn-light" id="handleCancel">Cancel</button>
+                    </div>
+                    <p class="handle-help" id="handleHelp">3 to 20 characters: lowercase letters, digits and underscores.</p>
+                </form>
+            </div>
+        </section>
+
+        <aside class="explainer" id="explainer" aria-labelledby="explainerTitle">
+            <h2 id="explainerTitle">How the score works</h2>
+            <div class="formula formula-lg">
+                <div>score = 1000 × <span class="c-precision">precision</span> × <span class="c-pace">pace</span></div>
+                <div><span class="c-precision">precision</span> = (par ÷ moves)²</div>
+                <div><span class="c-pace">pace</span> = ½ + ½ × 2<sup>−seconds ÷ (3 × par)</sup></div>
+            </div>
+            <div class="rules">
+                <p><strong>Par is the true minimum.</strong> Every daily board is solved optimally ahead of time, so 1000 needs a perfect solve at instant speed.</p>
+                <p><strong>Moves matter most.</strong> Precision is squared. At 41% over par it has already halved your score.</p>
+                <p><strong>Time can only halve it.</strong> Pace loses half of its remaining bonus every 3 seconds per par move (<span id="halfLife">2:24</span> today) and never falls below 50%.</p>
+                <p><strong>Hints cost 3 moves.</strong> Pausing hides the board.</p>
+            </div>
+        </aside>
+    </main>
+
+    <nav class="tab-bar" aria-label="Main">
+        <a href="../"><span>Daily</span></a>
+        <a href="../?mode=free"><span>Free play</span></a>
+        <a href="../solver/"><span>Solver</span></a>
+        <a href="./" aria-current="page"><span>Ranks</span></a>
+    </nav>
+
+    <dialog class="dialog" id="helpDialog" aria-labelledby="helpTitle">
+        <div class="dialog-head">
+            <h2 id="helpTitle">How the score works</h2>
+            <button type="button" class="dialog-close" data-close aria-label="Close">×</button>
+        </div>
+        <div id="helpBody"></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="../js/api.js"></script>
+    <script src="leaderboard.js"></script>
+</body>
+</html>

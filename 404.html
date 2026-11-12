@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1D1A3A">
     <title>Page Not Found - Quindici</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+    <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="/style.css">
     <style>
-        body {
-            height: 100vh;
+        .not-found {
+            flex: 1;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: var(--background-color);
-            margin: 0;
-        }
-        .error-container {
+            justify-content: center;
+            gap: 20px;
+            padding: 40px 16px;
             text-align: center;
         }
+        .not-found .title { font-size: clamp(56px, 18vw, 124px); }
+        .not-found p { font-size: 16px; color: var(--q-muted); }
     </style>
 </head>
 <body>
-    <div class="error-container">
-        <h1>404 - Page Not Found</h1>
-        <p>Sorry, the page you are looking for doesn&#39;t exist.</p>
-        <p><a href="/">Return to the game</a></p>
-    </div>
+    <header class="site-header">
+        <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">15</span>quindici</a>
+    </header>
+    <main class="not-found">
+        <div class="eyebrow">Page not found</div>
+        <h1 class="title">404</h1>
+        <p>This tile slid off the board.</p>
+        <a class="q-btn btn-primary" href="/">Back to the game</a>
+    </main>
 </body>
 </html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quindici daily puzzle, solved</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2BCE8;text-decoration:none}a:hover{color:#FFF6E5}
+</style>
+</helmet>
+<div style="min-height: 820px; box-sizing: border-box; background-color: #1D1A3A; background-image: linear-gradient(#2A2654 1px, transparent 1px), linear-gradient(90deg, #2A2654 1px, transparent 1px); background-size: 40px 40px; color: #FFF6E5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 14px 32px; background: #1D1A3A; border-bottom: 3px solid #120F26">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; height: 44px; color: #FFF6E5; font: 400 22px Bungee, 'Arial Black', sans-serif"><span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; box-sizing: border-box; border-radius: 8px; background: #FF9EC7; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px">15</span>quindici</a>
+<nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Main.dc.html" aria-current="page" style="padding: 10px 16px; border-radius: 10px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 3px 3px 0 #120F26; color: #120F26; font-size: 15px; font-weight: 600">Daily</a>
+<a href="Main.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Free play</a>
+<a href="Desktop-Solver.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Solver</a>
+<a href="Desktop-Leaderboard.dc.html" style="padding: 13px 16px; font-size: 15px; font-weight: 500">Leaderboard</a>
+</nav>
+<button aria-label="Keyboard shortcuts" style="width: 44px; height: 44px; border-radius: 10px; border: 3px solid #120F26; background: #8DE8EC; box-shadow: 3px 3px 0 #120F26; color: #120F26; font: 400 16px Bungee, 'Arial Black', sans-serif; cursor: pointer">?</button>
+</header>
+<main style="flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 56px; width: 100%; max-width: 1180px; margin: 0 auto; box-sizing: border-box; padding: 40px 32px">
+<section style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 22px">
+<div style="font: 500 13px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #8DE8EC">DAILY NO. 1 · SOLVED</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font: 400 124px/0.9 Bungee, 'Arial Black', sans-serif; color: #8EF0A8; text-shadow: 6px 6px 0 #120F26">599</div>
+<div style="font-size: 15px; color: #C2BCE8">out of 1000 · 8th today</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<a href="Desktop-Share.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer">Share result</a>
+<a href="Desktop-Solver.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #8DE8EC; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer">Watch the 48-move solution</a>
+<a href="Desktop-Leaderboard.dc.html" style="display: flex; align-items: center; justify-content: center; height: 44px; font-size: 15px; font-weight: 500">See the leaderboard</a>
+</div>
+</section>
+<div style="position: relative; flex: 0 1 460px; width: 100%; max-width: 460px">
+<div role="group" aria-label="Solved puzzle board" style="width: 100%; aspect-ratio: 1 / 1; box-sizing: border-box; padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 12px; background: #245C47; border: 3px solid #120F26; border-radius: 22px; box-shadow: 8px 8px 0 #120F26">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="16">
+<sc-if value="{{t.blank}}" hint-placeholder-val="{{false}}"><div style="box-sizing: border-box; border-radius: 12px; background: #1D1A3A; border: 3px dashed #4A4585"></div></sc-if>
+<sc-if value="{{t.tile}}" hint-placeholder-val="{{true}}"><div aria-label="{{t.label}}" style="min-width: 0; padding: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 3px solid #120F26; border-radius: 12px; background: {{t.bg}}; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 400 40px Bungee, 'Arial Black', sans-serif">{{t.n}}</div></sc-if>
+</sc-for>
+</div>
+<div style="position: absolute; top: -26px; right: 18px; padding: 8px 16px; border-radius: 10px; background: #FFE27A; border: 3px solid #120F26; box-shadow: 4px 4px 0 #120F26; color: #120F26; font: 400 22px Bungee, 'Arial Black', sans-serif; transform: rotate(5deg)">Solved!</div>
+</div>
+<section style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Precision</span><span style="font: 500 22px 'JetBrains Mono', ui-monospace, monospace">74%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 74%; height: 10px; border-radius: 5px; background: #FF9EC7"></div></div>
+<div style="font-size: 13px; line-height: 1.45; color: #C2BCE8">56 moves against a par of 48. That is 8 over.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; font-weight: 600">Pace</span><span style="font: 500 22px 'JetBrains Mono', ui-monospace, monospace">82%</span></div>
+<div style="height: 16px; box-sizing: border-box; padding: 0; border-radius: 8px; background: #120F26; border: 3px solid #120F26"><div style="width: 82%; height: 10px; border-radius: 5px; background: #8DE8EC"></div></div>
+<div style="font-size: 13px; line-height: 1.45; color: #C2BCE8">Solved in 1:36. Pace never drops below 50%.</div>
+</div>
+<div style="padding: 14px 16px; border-radius: 12px; background: #120F26; font: 500 14px/1.8 'JetBrains Mono', ui-monospace, monospace">
+<div style="color: #C2BCE8">1000 × <span style="color: #FF9EC7">precision</span> × <span style="color: #8DE8EC">pace</span></div>
+<div>1000 × 0.735 × 0.815 = <span style="color: #8EF0A8">599</span></div>
+</div>
+<div style="font-size: 13px; line-height: 1.5; color: #C2BCE8">A perfect 48-move solve in the same time would have scored 815.</div>
+</section>
+</main>
+<footer style="display: flex; justify-content: center; padding: 14px 32px 22px; font-size: 13px; color: #C2BCE8">Daily No. 2 unlocks at midnight, your time.</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+var ROW = ['#FF9EC7', '#FFE27A', '#8DE8EC', '#C9B3FF'];
+var B = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+var NEXT = 0;
+var tiles = B.map(function (n, i) { var home = n !== 0 && n === i + 1; return { n: n, blank: n === 0, next: n !== 0 && n === NEXT, tile: n !== 0 && n !== NEXT, bg: n === 0 ? '' : (home ? '#8EF0A8' : ROW[Math.floor((n - 1) / 4)]), label: 'Tile ' + n + (home ? ', in place' : '') }; });
+return { tiles: tiles };
+}
+}
+</script>
+</body>
+</html>
