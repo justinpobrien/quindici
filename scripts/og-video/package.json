@@ -1,0 +1,7 @@
+{
+  "name": "quindici-og-video",
+  "private": true,
+  "description": "Renders assets/preview-image.jpg and assets/preview-video.mp4",
+  "scripts": { "render": "node render.js" },
+  "devDependencies": { "puppeteer-core": "23.11.1" }
+}
