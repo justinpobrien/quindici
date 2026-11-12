@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- Link-preview card (1200×630). Renders a still (no ?t) or the frame at time ?t= seconds.
+     Used by scripts/og-video/render.js to make assets/preview-image.jpg and assets/preview-video.mp4. -->
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../../style.css">
+<style>
+html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+body{display:block;background-size:48px 48px}
+.og{box-sizing:border-box;width:1200px;height:630px;padding:64px 72px;display:flex;align-items:center;justify-content:space-between;gap:56px}
+.left{display:flex;flex-direction:column;gap:30px;max-width:560px}
+.logo{height:auto;font-size:40px;gap:16px}
+.logo .logo-mark{width:62px;height:62px;border-radius:14px;font-size:26px;border-width:4px;box-shadow:5px 5px 0 var(--q-ink)}
+h1{margin:0;font:400 76px/1 var(--q-font-display);color:var(--q-accent);text-shadow:6px 6px 0 var(--q-ink)}
+p{margin:0;font-size:26px;line-height:1.4;color:var(--q-muted)}
+.url{align-self:flex-start;padding:8px 16px;border-radius:10px;background:var(--q-pace);border:3px solid var(--q-ink);box-shadow:4px 4px 0 var(--q-ink);color:var(--q-ink);font:500 22px var(--q-font-mono)}
+.wrap{position:relative;flex:none;width:440px}
+/* Tiles are absolutely positioned so any in-between frame can be drawn. */
+.stage{position:relative;width:440px;height:440px;padding:14px;box-sizing:border-box;background:var(--q-panel);border:3px solid var(--q-ink);border-radius:22px;box-shadow:8px 8px 0 var(--q-ink)}
+.stage.is-solved{background:var(--q-solved-panel)}
+.stage .tile,.stage .cell-empty{position:absolute;width:92.5px;height:92.5px;box-sizing:border-box}
+.stage .tile{font-size:38px}
+.sticker{display:block;top:-24px;right:-14px;font-size:24px;white-space:nowrap}
+</style></head><body>
+<div class="og">
+ <div class="left">
+  <div class="logo"><span class="logo-mark">15</span>quindici</div>
+  <h1>The daily<br>15-puzzle</h1>
+  <p>Same board for everyone, every day. Scored against the shortest possible solution.</p>
+  <div class="url">quindici.io</div>
+ </div>
+ <div class="wrap"><div class="stage" id="stage"></div><div class="sticker" id="sticker">Par 48</div></div>
+</div>
+<script>
+// Board 7586ac3f0b1294ed and its optimal 48-move solution.
+const START = [7,5,8,6,10,12,3,15,0,11,1,2,9,4,14,13];
+const SOL = [11,1,2,15,3,2,14,13,15,3,6,8,2,12,1,4,13,14,12,6,3,12,4,11,10,7,5,1,6,4,11,6,7,5,1,2,4,3,8,4,3,7,6,10,9,13,14,15];
+const ROWS = ['var(--q-row-1)','var(--q-row-2)','var(--q-row-3)','var(--q-row-4)'];
+
+// Timeline (seconds)
+const INTRO = 1.2, STEP = 0.3, SLIDE = 0.16, OUTRO = 2.8;
+const DURATION = INTRO + SOL.length * STEP + OUTRO;
+window.DURATION = DURATION;
+
+const CELL = 92.5, GAP = 12;
+const PAD = 14;   // board padding: absolutely positioned tiles start at the padding edge
+const pos = (i) => [PAD + (i % 4) * (CELL + GAP), PAD + Math.floor(i / 4) * (CELL + GAP)];
+const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+const boards = [START];
+for (const t of SOL) {
+  const b = boards[boards.length - 1].slice(), i = b.indexOf(t), z = b.indexOf(0);
+  b[z] = t; b[i] = 0; boards.push(b);
+}
+
+const stage = document.getElementById('stage');
+const sticker = document.getElementById('sticker');
+const tiles = {};
+const empty = document.createElement('div');
+empty.className = 'cell-empty';
+stage.appendChild(empty);
+for (let n = 1; n <= 15; n++) {
+  const d = document.createElement('div');
+  d.className = 'tile';
+  d.textContent = n;
+  stage.appendChild(d);
+  tiles[n] = d;
+}
+
+function place(el, x, y) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+
+function renderAt(t) {
+  const m = Math.min(SOL.length, Math.max(0, Math.floor((t - INTRO) / STEP)));
+  const inMove = t >= INTRO && m < SOL.length;
+  const f = inMove ? Math.min(1, ((t - INTRO) - m * STEP) / SLIDE) : 1;
+  const board = inMove ? boards[m] : boards[Math.min(m, SOL.length)];
+  const moving = inMove ? SOL[m] : null;
+  const solved = !inMove && t >= INTRO;
+
+  const z = board.indexOf(0);
+  for (let n = 1; n <= 15; n++) {
+    const el = tiles[n], i = board.indexOf(n);
+    let [x, y] = pos(i);
+    let home = n === i + 1;
+    if (n === moving) {
+      const [zx, zy] = pos(z), e = ease(f);
+      x += (zx - x) * e; y += (zy - y) * e;
+      home = f >= 1 && n === z + 1;
+    }
+    place(el, x, y);
+    el.style.background = solved || home ? 'var(--q-home)' : ROWS[Math.floor((n - 1) / 4)];
+    const lifted = n === moving && f < 1;
+    el.style.borderColor = lifted ? 'var(--q-text)' : '';
+    el.style.boxShadow = lifted ? '0 0 0 3px var(--q-ink), 7px 7px 0 3px var(--q-ink)' : '';
+    el.style.zIndex = lifted ? 2 : 1;
+    el.style.transform = lifted ? 'translate(-3px, -3px)' : '';
+  }
+  // The empty square trails the moving tile.
+  const [ex, ey] = pos(moving ? board.indexOf(moving) : z);
+  const [zx, zy] = pos(z);
+  if (moving) { const e = ease(f); place(empty, zx + (ex - zx) * e, zy + (ey - zy) * e); } else place(empty, zx, zy);
+
+  stage.classList.toggle('is-solved', solved);
+  sticker.textContent = solved ? 'Solved!' : t < INTRO ? 'Par 48' : `${Math.min(SOL.length, m + (f >= 1 ? 1 : 0))} / 48`;
+}
+
+const q = new URLSearchParams(location.search).get('t');
+renderAt(q === null ? 0 : Number(q));
+window.renderAt = renderAt;
+</script>
+</body></html>
