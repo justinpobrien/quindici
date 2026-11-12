@@ -1,0 +1,20 @@
+{
+  "name": "quindici-functions",
+  "private": true,
+  "description": "Quindici leaderboard API (Firebase Cloud Functions)",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-shared.js",
+    "test": "node scripts/sync-shared.js && node --test test/unit.test.js",
+    "serve": "node scripts/sync-shared.js && firebase emulators:start --only functions,firestore",
+    "test:emulator": "node scripts/sync-shared.js && firebase emulators:exec --only functions,firestore \"node --test test/api.test.js\"",
+    "deploy": "firebase deploy --only functions,firestore"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0",
+    "firebase-functions": "^6.6.0"
+  }
+}

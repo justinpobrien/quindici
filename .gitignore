@@ -1,2 +1,6 @@
 exclude
 .DS_Store
+firebase-debug*.log
+firestore-debug.log
+.firebase/
+pglite-debug.log
