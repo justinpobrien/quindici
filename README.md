@@ -132,6 +132,8 @@ node scripts/extend-daily.js --days 365
 
 Then redeploy the Cloud Function so the server knows the new boards: `firebase deploy --only functions`.
 
+A weekly GitHub Action (`.github/workflows/daily-runway.yml`) opens an issue when fewer than 60 days of boards are left. Check by hand with `node scripts/check-daily-runway.js`.
+
 The committed `daily/boards.json` is the source of truth. The generator is seeded by date, but it skips any candidate board that takes more than 4 seconds to solve, so a rerun on a different machine can occasionally pick a different (equally valid) board for a date. Never regenerate dates that are already live. (Boards No. 1–365 were generated for a 2026-12-01 start and moved 20 days earlier when launch moved to 2026-11-11, so regenerating those dates would not reproduce them.)
 
 # **License**

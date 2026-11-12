@@ -178,6 +178,71 @@ const BEFORE = '2026-11-01';
         check('board link: solved with a score', (await text(p, '#solvedScore')) === '1000' && /out of 1000/.test(await text(p, '#solvedCaption')));
         await p.context.close();
 
+        // --- Streak: Daily No. 1 then No. 2 on the same device
+        p = await open(`/?today=${DAY1}`);
+        const sctx = p.context;
+        await p.keyboard.press('Enter');
+        for (const tile of D1.solution) await clickTile(p, tile);
+        await sleep(200);
+        check('no streak shown after one day', !(await visible(p, '#solvedStreak')));
+        await p.close();
+        p = await open(`/?today=${DAY2}`, {}, sctx);
+        await p.keyboard.press('Enter');
+        for (const tile of boards[1].solution) await clickTile(p, tile);
+        await sleep(200);
+        check('streak shown after two days', (await text(p, '#solvedStreak')) === '🔥 2-day streak');
+        await p.click('#shareButton');
+        await p.waitForFunction(() => document.getElementById('shareText').textContent.length > 0);
+        check('streak in share text', /^quindici #2 · \d+ · 🔥2\n/.test(await p.$eval('#shareText', e => e.textContent)));
+        await sctx.close();
+
+        // --- Midnight while the page is open (a fake clock jumps a day ahead)
+        const fakeClock = () => {
+            const Real = Date;
+            const off = () => Number(sessionStorage.getItem('__dayOffset') || 0);
+            class FakeDate extends Real {
+                constructor(...a) { if (a.length) super(...a); else super(Real.now() + off()); }
+                static now() { return Real.now() + off(); }
+            }
+            window.Date = FakeDate;
+        };
+        const nextDay = (p) => p.evaluate(() => {
+            sessionStorage.setItem('__dayOffset', String(86400000));
+            document.dispatchEvent(new Event('visibilitychange'));
+        });
+        const pad = (x) => String(x).padStart(2, '0');
+        const now = new Date();
+        const todayN = (boards.find(b => b.date === `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`) || {}).n;
+        if (todayN && boards.some(b => b.n === todayN + 1)) {
+            const ctx = await browser.createBrowserContext();
+            let q = await ctx.newPage();
+            await q.evaluateOnNewDocument(fakeClock);
+            await q.goto(base + '/', { waitUntil: 'networkidle0' });
+            check('midnight: today\'s daily before', new RegExp(`No\\. ${todayN}$`).test(await text(q, '#title')));
+            await Promise.all([q.waitForNavigation({ waitUntil: 'networkidle0' }), nextDay(q)]);
+            check('midnight: an untouched start screen reloads into the next daily', new RegExp(`No\\. ${todayN + 1}$`).test(await text(q, '#title')));
+            await ctx.close();
+
+            const ctx2 = await browser.createBrowserContext();
+            q = await ctx2.newPage();
+            await q.evaluateOnNewDocument(fakeClock);
+            await q.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+            await q.goto(base + '/', { waitUntil: 'networkidle0' });
+            await q.keyboard.press('Enter');
+            const entry = boards.find(b => b.n === todayN);
+            await clickTile(q, entry.solution[0]);
+            await nextDay(q);
+            await sleep(200);
+            check('midnight: a game in progress keeps going, with a note', /A new day/.test(await text(q, '#toast')) &&
+                new RegExp(`No\\. ${todayN}$`).test(await text(q, '#title')));
+            for (const tile of entry.solution.slice(1)) await clickTile(q, tile);
+            await sleep(1300);
+            check('midnight: solved screen says the next daily is out', (await text(q, '#solvedFooter')) === `Daily No. ${todayN + 1} is out. Play it`);
+            await ctx2.close();
+        } else {
+            check('midnight tests need today and tomorrow in daily/boards.json', false);
+        }
+
         // --- Phone
         p = await open(`/?today=${DAY1}`, { w: 390, h: 844, phone: true });
         await p.tap('#startButton');

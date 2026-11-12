@@ -1,0 +1,52 @@
+name: Daily boards runway
+
+# Weekly check that daily/boards.json has at least 60 days of boards left.
+# Opens an issue (once) when it is running out.
+on:
+  schedule:
+    - cron: '0 16 * * 1'   # Mondays, 16:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - id: runway
+        run: node scripts/check-daily-runway.js --warn-days 60
+
+      - name: Open an issue
+        if: steps.runway.outputs.warn == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAST_DATE: ${{ steps.runway.outputs.last_date }}
+          LAST_N: ${{ steps.runway.outputs.last_n }}
+          DAYS_LEFT: ${{ steps.runway.outputs.days_left }}
+        run: |
+          title="Daily boards run out on $LAST_DATE"
+          if gh issue list --state open --search "\"Daily boards run out\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "An issue is already open."
+            exit 0
+          fi
+          gh issue create --title "$title" --body "$(cat <<BODY
+          \`daily/boards.json\` ends with Daily No. $LAST_N on **$LAST_DATE**, $DAYS_LEFT days from now. After that, the site shows "No daily today".
+
+          To add another year (about 15 minutes):
+
+          \`\`\`
+          node scripts/extend-daily.js --days 365
+          cd functions && firebase deploy --only functions --project quindici-io
+          \`\`\`
+
+          Then open a pull request with the updated \`daily/boards.json\`. The function must be redeployed so the server knows the new boards.
+          BODY
+          )"

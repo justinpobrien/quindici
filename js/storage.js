@@ -76,6 +76,10 @@
         });
     };
 
+    Storage.streak = function () {
+        return load().streak;
+    };
+
     // Results solved here that still need to reach the leaderboard.
     Storage.pendingSubmissions = function () {
         const results = load().results;
