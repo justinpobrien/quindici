@@ -386,7 +386,8 @@ button.tile { cursor: pointer; }
 }
 .stat-label { font-size: 13px; color: var(--q-muted); }
 .stat-value { font: 500 28px var(--q-font-mono); font-variant-numeric: tabular-nums; }
-.stat-par { font-size: 13px; color: var(--q-pace); }
+.stat-label-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; }
+.stat-par { font: 500 13px var(--q-font-mono); color: var(--q-pace); }
 .stat-score { display: none; }
 .score-value { font: 400 20px var(--q-font-display); color: var(--q-accent); }
 
@@ -659,6 +660,7 @@ button.tile { cursor: pointer; }
     .board-wrap { order: 3; align-self: center; flex: none; width: min(350px, 100%); }
     .actions { order: 4; padding-top: 4px; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 12px; }
     .actions .q-btn { padding: 0 10px; }
+    .mode-free .hint-extra { display: none; }
     .goal-card { order: 5; }
     .board-code { display: none; }
 

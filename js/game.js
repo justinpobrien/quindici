@@ -408,7 +408,7 @@
             const seconds = this.elapsedNow() / 1000;
             this.el.moves.textContent = this.tileMoves;
             this.el.movesLabel.textContent = this.hints ? `Moves · ${this.hints} ${this.hints === 1 ? 'hint' : 'hints'} (+${S.HINT_PENALTY * this.hints})` : 'Moves';
-            this.el.statPar.textContent = this.par ? ` / par ${this.par}` : (this.mode === 'free' ? ' / par …' : '');
+            this.el.statPar.textContent = this.par ? `par ${this.par}` : (this.mode === 'free' ? 'par …' : '');
             this.el.timer.textContent = formatTime(seconds);
 
             const known = !!this.par;
@@ -431,7 +431,7 @@
         updateButtons() {
             const playing = this.started && !this.gameWon && !this.el.main.classList.contains('is-message');
             this.el.hint.disabled = !playing || this.paused || this.hintBusy;
-            this.el.hint.textContent = this.hintBusy ? 'Thinking…' : 'Hint +3 moves';
+            this.el.hint.innerHTML = this.hintBusy ? 'Thinking…' : '<span>Hint +3<span class="hint-extra"> moves</span></span>';
             this.el.pause.disabled = !playing;
             this.el.pause.textContent = this.paused ? 'Resume' : 'Pause';
             this.el.pause.setAttribute('aria-pressed', String(this.paused));
