@@ -8,10 +8,10 @@ const D1 = core.daily(1);
 const T0 = 1_800_000_000_000;
 
 test('daily lookup and release window', () => {
-    assert.strictEqual(D1.date, '2026-12-01');
+    assert.strictEqual(D1.date, '2026-11-11');
     assert.strictEqual(core.daily(9999), null);
-    assert.ok(!core.isReleased(D1, Date.parse('2026-11-30T09:00:00Z')));
-    assert.ok(core.isReleased(D1, Date.parse('2026-11-30T10:00:00Z')));   // already Dec 1 in UTC+14
+    assert.ok(!core.isReleased(D1, Date.parse('2026-11-10T09:00:00Z')));
+    assert.ok(core.isReleased(D1, Date.parse('2026-11-10T10:00:00Z')));   // already Nov 11 in UTC+14
 });
 
 test('tokens verify and reject tampering', () => {

@@ -110,13 +110,13 @@ pace      = ½ + ½ × 2^(−seconds / (3 × par))
 
 ### Upkeep: regenerate the daily boards
 
-`daily/boards.json` covers **2026-12-01 to 2027-11-30** (Daily No. 1–365). Before it runs out, append the next year (takes about 15 minutes); dates and numbering continue automatically:
+`daily/boards.json` covers **2026-11-11 to 2027-11-10** (Daily No. 1–365). Before it runs out, append the next year (takes about 15 minutes); dates and numbering continue automatically:
 
 ```
 node scripts/extend-daily.js --days 365
 ```
 
-The committed `daily/boards.json` is the source of truth. The generator is seeded by date, but it skips any candidate board that takes more than 4 seconds to solve, so a rerun on a different machine can occasionally pick a different (equally valid) board for a date. Never regenerate dates that are already live.
+The committed `daily/boards.json` is the source of truth. The generator is seeded by date, but it skips any candidate board that takes more than 4 seconds to solve, so a rerun on a different machine can occasionally pick a different (equally valid) board for a date. Never regenerate dates that are already live. (Boards No. 1–365 were generated for a 2026-12-01 start and moved 20 days earlier when launch moved to 2026-11-11, so regenerating those dates would not reproduce them.)
 
 # **Additional Information**
 

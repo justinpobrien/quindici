@@ -263,7 +263,7 @@ Events: `daily_start {n}`, `daily_solved {n, score, moves, seconds, hints}`, `hi
 
 ## 12. Open decisions (owner: Justin)
 
-1. **Launch date** (Daily No. 1). **Decided: 2026-12-01.**
+1. **Launch date** (Daily No. 1). **Decided: 2026-11-11** (moved up from 2026-12-01; the generated boards were shifted 20 days earlier).
 2. **Backend for the leaderboard.** Default: Cloudflare Workers + D1. **Decided: Firebase** (already set up); the site stays hosted on Netlify. §9's endpoints and checks still apply, built as Cloud Functions with Firestore.
 3. **Shift-slides counting per tile.** Default: yes, for every mode.
 4. **Friends tab.** Default: hidden in v1.
