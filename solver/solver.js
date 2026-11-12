@@ -45,9 +45,26 @@
         buildingGif: false,
     };
 
+    // ---------- daily lock ----------
+
+    // Today's daily stays locked here until it has been solved on this device. A courtesy, not security.
+    const todayDaily = fetch('../daily/boards.json')
+        .then(r => (r.ok ? r.json() : []))
+        .then(list => list.find(d => d.date === todayKey()) || null)
+        .catch(() => null);
+
+    function todayKey() {
+        const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+        const override = local && new URLSearchParams(window.location.search).get('today');
+        if (override && /^\d{4}-\d{2}-\d{2}$/.test(override)) return override;
+        const d = new Date();
+        const pad = (n) => (n < 10 ? '0' : '') + n;
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
     // ---------- solving ----------
 
-    function load(input, { updateUrl = true } = {}) {
+    async function load(input, { updateUrl = true } = {}) {
         let board;
         try {
             board = P.parseBoard(input);
@@ -71,8 +88,18 @@
         el.playLink.href = '../?board=' + hex;
         if (updateUrl) history.replaceState(null, '', '?board=' + hex);
         setCodeOpen(false);
+        el.moves.textContent = '';
+        el.listWrap.hidden = true;
+        el.main.classList.remove('is-locked');
 
         render();
+        const daily = await todayDaily;
+        if (daily && daily.hex === hex && !(window.QStorage && window.QStorage.result(daily.n))) {
+            el.main.classList.add('is-locked');
+            el.title.textContent = 'Locked';
+            setStatus("Today's daily board stays locked here until you have solved it yourself.");
+            return;
+        }
         runWorker(board);
     }
 

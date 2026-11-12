@@ -30,7 +30,8 @@
     <header class="site-header">
         <a class="logo" href="../"><span class="logo-mark" aria-hidden="true">15</span>quindici</a>
         <nav class="site-nav" aria-label="Main">
-            <a href="../">Free play</a>
+            <a href="../">Daily</a>
+            <a href="../?mode=free">Free play</a>
             <a href="./" aria-current="page">Solver</a>
         </nav>
         <button type="button" class="help-button" id="helpButton" aria-haspopup="dialog" aria-label="How the solver works and keyboard shortcuts">?</button>
@@ -99,7 +100,8 @@
     </main>
 
     <nav class="tab-bar" aria-label="Main">
-        <a href="../"><span>Free play</span></a>
+        <a href="../"><span>Daily</span></a>
+        <a href="../?mode=free"><span>Free play</span></a>
         <a href="./" aria-current="page"><span>Solver</span></a>
     </nav>
 
@@ -122,7 +124,8 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <canvas id="gifCanvas" width="360" height="360" hidden></canvas>
 
-    <script src="../puzzle.js"></script>
+    <script src="../js/puzzle.js"></script>
+    <script src="../js/storage.js"></script>
     <script src="solver.js"></script>
 </body>
 </html>

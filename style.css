@@ -325,7 +325,24 @@ button.tile { cursor: pointer; }
 .col-left { flex: 1 1 260px; gap: 20px; }
 .col-right { flex: 1 1 240px; gap: 24px; }
 
-.intro { display: flex; flex-direction: column; gap: 20px; }
+.intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.intro-text { display: flex; flex-direction: column; gap: 20px; }
+.par-chip {
+    display: none;
+    flex: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--q-pace);
+    border: 2px solid var(--q-ink);
+    box-shadow: 2px 2px 0 var(--q-ink);
+    color: var(--q-ink);
+    font: 500 13px var(--q-font-mono);
+}
+.info-line { font-size: 15px; line-height: 1.5; color: var(--q-muted); }
+.info-line:empty { display: none; }
+.info-line strong { color: var(--q-pace); font-weight: 600; }
+.free-only { display: none; }
+.mode-free .free-only { display: inline; }
 .title {
     font: 400 52px/1 var(--q-font-display);
     color: var(--q-accent);
@@ -368,11 +385,66 @@ button.tile { cursor: pointer; }
 }
 .stat-label { font-size: 13px; color: var(--q-muted); }
 .stat-value { font: 500 28px var(--q-font-mono); font-variant-numeric: tabular-nums; }
+.stat-par { font-size: 13px; color: var(--q-pace); }
+.stat-score { display: none; }
+.score-value { font: 400 20px var(--q-font-display); color: var(--q-accent); }
+
+/* Live score and bars */
+.live, .result { display: flex; flex-direction: column; gap: 24px; }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar-group { display: flex; flex-direction: column; gap: 8px; }
+.bar-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+.bar {
+    height: 16px;
+    border-radius: 8px;
+    background: var(--q-ink);
+    border: 3px solid var(--q-ink);
+}
+.bar-fill { width: 100%; height: 10px; border-radius: 5px; }
+.fill-precision { background: var(--q-precision); }
+.fill-pace { background: var(--q-pace); }
+.score-now {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: var(--q-border);
+    font-size: 13px;
+}
+.score-now-value {
+    font: 400 38px var(--q-font-display);
+    color: var(--q-accent);
+    text-shadow: 3px 3px 0 var(--q-ink);
+}
+
+/* Result (solved) */
+.result { gap: 22px; }
+.result-head { font-size: 15px; font-weight: 600; }
+.result-head .mono { font-size: 22px; font-weight: 500; }
+.bar-note, .what-if { font-size: 13px; line-height: 1.45; color: var(--q-muted); }
+.what-if { line-height: 1.5; }
+.formula {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--q-ink);
+    font: 500 14px/1.8 var(--q-font-mono);
+}
+.c-precision { color: var(--q-precision); }
+.c-pace { color: var(--q-pace); }
+.c-home { color: var(--q-home); }
+.solved-footnote { display: none; }
+
+/* No daily today, or a future daily */
+.game.is-message .actions,
+.game.is-message .info-line,
+.game.is-message .board-code,
+.game.is-message .live { display: none; }
 
 /* ---------- solved state ---------- */
 
 .game.is-solved .intro,
 .game.is-solved .goal-card,
+.game.is-solved .info-line,
 .game.is-solved .board-code,
 .game.is-solved .actions { display: none; }
 .game.is-solved .col-left { gap: 22px; }
@@ -386,6 +458,7 @@ button.tile { cursor: pointer; }
     color: var(--q-home);
     text-shadow: 6px 6px 0 var(--q-ink);
 }
+.solved-number.is-long { font-size: 100px; }
 .solved-caption { font-size: 15px; color: var(--q-muted); }
 .solved-actions { display: flex; flex-direction: column; gap: 14px; }
 .solved-mini { display: none; position: relative; }
@@ -445,6 +518,43 @@ button.tile { cursor: pointer; }
     font: 400 22px/1 var(--q-font-display);
     cursor: pointer;
 }
+/* Share dialog: centered on desktop, a bottom sheet on phones */
+.share-dialog { width: min(1000px, calc(100% - 32px)); padding: 32px; border-radius: 24px; box-shadow: 10px 10px 0 var(--q-ink); }
+.share-dialog[open] { display: flex; flex-direction: column; gap: 28px; }
+.share-dialog > * + * { margin-top: 0; }
+.share-dialog h2 { font-size: 30px; }
+.sheet-handle { display: none; }
+.share-body { display: flex; flex-wrap: wrap; gap: 32px; }
+.share-image { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.share-text { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.share-label { font-size: 13px; color: var(--q-muted); }
+.share-card {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 630;
+    border-radius: 16px;
+    border: var(--q-border);
+    background: var(--q-bg);
+}
+.share-image .q-btn { align-self: flex-start; }
+.share-pre {
+    margin: 0;
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--q-ink);
+    font: 500 14px/1.7 var(--q-font-mono);
+    color: var(--q-text);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.share-actions { display: flex; flex-direction: column; gap: 14px; }
+.share-row { display: flex; flex-wrap: wrap; gap: 14px; }
+.share-row .q-btn { flex: 1 1 140px; }
+.share-note { font-size: 13px; line-height: 1.5; color: var(--q-muted); }
+.phone-action { display: none !important; }
+.dialog-close svg { display: block; margin: auto; }
+
 .shortcut-list {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -543,7 +653,7 @@ button.tile { cursor: pointer; }
     }
     /* Flatten the columns so their pieces can be reordered for the phone layout. */
     .col-left, .col-right, .solved-summary { display: contents; }
-    .intro { order: 1; gap: 6px; }
+    .intro { order: 1; }
     .stats { order: 2; }
     .board-wrap { order: 3; align-self: center; flex: none; width: min(350px, 100%); }
     .actions { order: 4; padding-top: 4px; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 12px; }
@@ -554,7 +664,15 @@ button.tile { cursor: pointer; }
     .eyebrow { font-size: 12px; }
     .title { font-size: 28px; text-shadow: 3px 3px 0 var(--q-ink); }
 
-    .stats { gap: 9px; }
+    .stats { gap: 9px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stat-score { display: flex; }
+    .stat-par { display: none; }
+    .stat-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bars, .score-now { display: none !important; }
+    .live { display: contents; }
+    .par-chip { display: block; }
+    .intro-text { gap: 6px; }
+    .info-line { display: none; }
     .stat-card { gap: 2px; padding: 8px 10px; border-radius: 12px; box-shadow: var(--q-shadow-sm); }
     .stat-label { font-size: 12px; }
     .stat-value { font-size: 20px; }
@@ -580,9 +698,42 @@ button.tile { cursor: pointer; }
     .solved-head { order: 0; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 14px; }
     .solved-text .eyebrow { margin-bottom: 0; }
     .solved-number { font-size: 96px; text-shadow: 5px 5px 0 var(--q-ink); }
+    .solved-number.is-long { font-size: 68px; }
+    .solved-text { min-width: 0; }
+    .solved-mini { flex: none; }
     .solved-caption { font-size: 14px; }
     .solved-mini { display: block; }
     .solved-actions { order: 6; margin-top: auto; }
+    .result { order: 5; gap: 16px; }
+    .result .what-if { display: none; }
+    .formula { font-size: 13px; }
+    .solved-footnote { display: block; font-size: 13px; text-align: center; color: var(--q-muted); }
+
+    .share-dialog {
+        box-sizing: border-box;
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: hidden;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
+        border-radius: 24px 24px 0 0;
+        border-bottom: 0;
+        box-shadow: none;
+    }
+    .share-dialog[open] { gap: 16px; }
+    .share-dialog h2 { font-size: 22px; text-shadow: 2px 2px 0 var(--q-ink); }
+    .sheet-handle { display: block; align-self: center; width: 44px; height: 5px; border-radius: 3px; background: var(--q-ink); }
+    .share-body { flex-direction: column; flex-wrap: nowrap; gap: 16px; }
+    .share-image, .share-text { flex: none; gap: 16px; }
+    .share-label, .desktop-action { display: none !important; }
+    .phone-action { display: inline-flex !important; }
+    .share-pre { padding: 14px 16px; font-size: 13px; }
+    .share-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .share-row .q-btn { height: 48px; font-size: 15px; }
+    .share-row #copyText { background: var(--q-text); }
+    .share-note { text-align: center; }
+    .phone-action[hidden] { display: none !important; }
 
     .toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
     .dialog { padding: 20px; }
@@ -592,6 +743,7 @@ button.tile { cursor: pointer; }
 
 @media (max-width: 360px) {
     .solved-number { font-size: 72px; }
+    .solved-number.is-long { font-size: 52px; }
     .solved-board { width: 100px; height: 100px; }
 }
 

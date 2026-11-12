@@ -94,6 +94,30 @@ Here's an example of an animated GIF of the solution path for the board state ab
 **Note**: The solver is an excellent resource for learning and understanding the strategies behind solving the 15-puzzle efficiently.
 
 
+## **Daily Challenge**
+
+Everyone gets the same board each day, chosen by the player's local date. Each board's par (its shortest solution) is precomputed, and the score runs from 0 to 1000:
+
+```
+score     = round(1000 × precision × pace)
+precision = (par / moves)²                  moves = tiles moved + 3 × hints
+pace      = ½ + ½ × 2^(−seconds / (3 × par))
+```
+
+- `/` opens today's daily, `/?daily=N` a past one (practice, not scored), `/?mode=free` free play, and `/?board=<hex>` free play on a given board.
+- Results, streaks and the in-progress daily are stored in `localStorage` under `quindici.v1`.
+- Scoring tests: `node --test tests/scoring.test.js`.
+
+### Upkeep: regenerate the daily boards
+
+`daily/boards.json` covers **2026-12-01 to 2027-11-30** (Daily No. 1–365). Before it runs out, append the next year (takes about 15 minutes); dates and numbering continue automatically:
+
+```
+node scripts/extend-daily.js --days 365
+```
+
+The committed `daily/boards.json` is the source of truth. The generator is seeded by date, but it skips any candidate board that takes more than 4 seconds to solve, so a rerun on a different machine can occasionally pick a different (equally valid) board for a date. Never regenerate dates that are already live.
+
 # **Additional Information**
 
 ## **Features**
