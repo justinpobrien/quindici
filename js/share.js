@@ -18,11 +18,12 @@
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // r: { label ('#1' or 'free play'), score, precision, pace, moves (scored), par, seconds, hints, url }
+    // r: { label ('#1' or 'free play'), score, precision, pace, moves (scored), par, seconds, hints, streak, url }
     function text(r) {
         const hints = r.hints ? ` · ${r.hints} ${r.hints === 1 ? 'hint' : 'hints'}` : '';
+        const streak = r.streak >= 2 ? ` · 🔥${r.streak}` : '';
         return [
-            `quindici ${r.label} · ${r.score}${hints}`,
+            `quindici ${r.label} · ${r.score}${hints}${streak}`,
             `precision ${bar(r.precision)} ${r.moves}/${r.par}`,
             `pace      ${bar(r.pace)} ${formatTime(r.seconds)}`,
             r.url,

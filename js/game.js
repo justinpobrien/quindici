@@ -106,6 +106,7 @@
 
             const params = new URLSearchParams(window.location.search);
             const hex = params.get('board');
+            this.loadedDay = todayKey();
 
             if (hex) {
                 try {
@@ -271,8 +272,8 @@
             this.elapsedMs = 0;
             this.result = null;
             clearInterval(this.countdownTimer);
-            this.countdownDay = null;
             $('solvedBeat').hidden = true;
+            $('solvedStreak').hidden = true;
 
             this.el.main.classList.remove('is-solved', 'is-message');
             this.el.boardWrap.classList.remove('is-solved');
@@ -340,7 +341,9 @@
             document.addEventListener('keydown', (event) => this.handleKeydown(event));
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && this.runningSince !== null) this.togglePause(true);
+                if (!document.hidden) this.checkDay();
             });
+            setInterval(() => this.checkDay(), 30000);
             window.addEventListener('pagehide', () => this.saveProgress());
         }
 
@@ -696,6 +699,7 @@
                 this.setFootnote(footnote);
             }
             this.updateBeat();
+            this.updateStreak();
 
             const hex = P.toHex(this.initialBoard);
             const watch = $('watchSolution');
@@ -818,13 +822,49 @@
             const now = new Date();
             const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
             const ms = midnight - now;
-            if (ms <= 0 || (this.countdownDay && this.countdownDay !== now.toDateString())) {
+            if (this.dayChanged()) {
                 clearInterval(this.countdownTimer);
                 this.setFootnote(`Daily No. ${next} is out. <a href="./">Play it</a>`, true);
                 return;
             }
-            this.countdownDay = this.countdownDay || now.toDateString();
             this.setFootnote(`Daily No. ${next} unlocks in <span class="countdown">${formatCountdown(ms)}</span>, at midnight your time.`, true);
+        }
+
+        // True once the player's local date has moved on since the page loaded.
+        dayChanged() {
+            return !!this.loadedDay && todayKey() !== this.loadedDay;
+        }
+
+        // Midnight while the page is open. An untouched start screen (or "No daily today") reloads into the
+        // new daily. A game in progress can be finished and still counts for the day it belongs to.
+        checkDay() {
+            if (this.mode !== 'daily' || !this.dayChanged() || this.dayNotified) return;
+            const onToday = !/^\/daily\/\d+/.test(window.location.pathname) && !new URLSearchParams(window.location.search).has('daily');
+            const idle = !this.started || this.el.main.classList.contains('is-message');
+            if (onToday && idle) {
+                window.location.reload();
+                return;
+            }
+            if (this.gameWon) return; // the solved screen's countdown already says the next daily is out
+            this.dayNotified = true;
+            this.toast(`A new day: today's daily is out. Daily No. ${this.entry ? this.entry.n : ''} still counts when you finish it.`, 7000);
+        }
+
+        // Consecutive dailies solved on this device, shown from two in a row.
+        streakCount() {
+            if (this.mode !== 'daily' || !this.entry || this.practice) return 0;
+            const s = Store.streak();
+            return s && s.lastN === this.entry.n ? s.current : 0;
+        }
+
+        updateStreak() {
+            const el = $('solvedStreak');
+            const s = Store.streak();
+            const n = this.streakCount();
+            el.hidden = n < 2;
+            if (n < 2) return;
+            el.textContent = `🔥 ${n}-day streak`;
+            if (s.best > n) el.appendChild(Object.assign(document.createElement('span'), { className: 'streak-best', textContent: ` · best ${s.best}` }));
         }
 
         setFootnote(text, html = false) {
@@ -946,7 +986,7 @@
                 label: daily ? `#${this.entry.n}` : 'free play',
                 heading: daily ? `NO. ${this.entry.n} · ${shortDate(this.entry.date)}` : `FREE PLAY · ${shortDate(todayKey())}`,
                 score: s.score, precision: s.precision, pace: s.pace, moves: s.moves,
-                par: this.par, seconds: r.seconds, hints: r.hints, url,
+                par: this.par, seconds: r.seconds, hints: r.hints, streak: this.streakCount(), url,
             };
             info.text = window.Share.text(info);
             return info;
